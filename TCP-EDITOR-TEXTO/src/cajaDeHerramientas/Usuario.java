@@ -1,11 +1,9 @@
 package cajaDeHerramientas;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -13,11 +11,11 @@ public class Usuario {
 	private String host;
 	private int puerto;
 	private String mensajeError = null;
-	private PrintWriter salidaAServidor;
+	private ObjectOutputStream salidaAServidor;
 	private String msgSalida;
-	private BufferedReader reciboMsg;
+	private ObjectInputStream reciboMsg;
 	private Socket client;
-	private OutputStream outPutStream;
+	private ObjectOutputStream outPutStream;
 	private InputStream inputStream;
 
 	public Socket obtenerSocketCliente() {
@@ -30,7 +28,7 @@ public class Usuario {
 			this.host = host;
 			this.puerto = puerto;
 			this.client = new Socket(host, puerto);
-
+			
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			this.mensajeError = "No se encontro ningun servidor al cual conectarse!";
@@ -46,13 +44,11 @@ public class Usuario {
 		return mensajeError;
 	}
 
-	public void enviarMsg(String consultaAlServidor) {
+	public void enviarMsg(Object consultaAlServidor) {
 		try {
-			this.outPutStream = client.getOutputStream();
-			this.msgSalida = "el msg";
-			salidaAServidor = new PrintWriter(outPutStream);
-			salidaAServidor.println(msgSalida);
-			salidaAServidor.flush();
+			this.outPutStream = new ObjectOutputStream(client.getOutputStream());
+			outPutStream.writeObject(consultaAlServidor);
+//			outPutStream.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -60,18 +56,17 @@ public class Usuario {
 
 	}
 
-	public String recibirMsg() {
+	public Objeto recibirMsg() {
+		Objeto obj =  null;
 		try {
-			this.inputStream = client.getInputStream();
-			this.reciboMsg = new BufferedReader(new InputStreamReader(inputStream));
-			String msgRecibo = reciboMsg.readLine();
-			//Decodificar el msg		
-		} catch (IOException e) {
+			reciboMsg = new ObjectInputStream(client.getInputStream());
+			obj =(Objeto) reciboMsg.readObject();
+		} catch (IOException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
-			this.mensajeError = "Comunicacion cerrada en recibir msg. " + e;
+			this.mensajeError = "Comunicacion cerrada en recibir msg1. " + e;
 			System.out.println(mensajeError);
 		}
-		return "msgRecibido";
+		return obj;
 	}
 
 	public void cerrarComunicacion() {

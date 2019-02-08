@@ -1,11 +1,8 @@
 package cajaDeHerramientas;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -18,8 +15,8 @@ public class HiloCliente extends Thread{
 	private int idSesion;
 	private static ArrayList<String> usuariosConectados = new ArrayList<>();
 	private int i = 0;
-	private InputStream in;
-	private OutputStream out;
+//	private InputStream in;
+//	private OutputStream out;
 	private static boolean puedeActualizar;
 
 	// En el constructor recibe y guarda los parámetros que sean necesarios.
@@ -30,13 +27,13 @@ public class HiloCliente extends Thread{
 		this.cliente = cliente;
 		this.idSesion = idSesion;
 		puedeActualizar = true;
-		try {
-			this.out = cliente.getOutputStream(); // Se debe cerrar
-			this.in = cliente.getInputStream();
-		} catch (IOException e) {
-
-			e.printStackTrace();
-		}
+//		try {
+//			this.out = cliente.getOutputStream(); // Se debe cerrar
+//			this.in = cliente.getInputStream();
+//		} catch (IOException e) {
+//
+//			e.printStackTrace();
+//		}
 	}
 
 	@Override
@@ -44,36 +41,40 @@ public class HiloCliente extends Thread{
 
 		try {
 			i++;
-			BufferedReader reciboMsg;
-			PrintWriter salidaACliente;
+			ObjectInputStream reciboMsg ;
+			ObjectOutputStream salidaACliente = null;
 			while (true) {
 				/* Recibo Consulta de cliente */
-				reciboMsg = new BufferedReader(new InputStreamReader(this.in)); // Se debe cerrar
-				if (reciboMsg.ready()) {
-
-					String msgRecibo = reciboMsg.readLine();
+				System.out.println("Hola entre11 antes");
+				reciboMsg = new ObjectInputStream(cliente.getInputStream());
+//				if (reciboMsg != null) {
+					System.out.println("Hola entre");
+					Objeto msgRecibo =(Objeto)reciboMsg.readObject();
+//					Objeto obj = (Objeto) msgRecibo;
+					System.out.println(msgRecibo.getObj()+" - el obj");
 //					System.out.println("Siendo Sv, Recibo parametro = " + c.getSolicitud() + ", " + c.getResultado());
 
-					String resultado = procesarConsulta("","");
-					if (resultado.equals("OK")) {
-
-						//Resultados
-
-					} else {
-
-						//Resultados
-					}
+//					String resultado = procesarConsulta("","");
+//					if (resultado.equals("OK")) {
+//
+//						//Resultados
+//
+//					} else {
+//
+//						//Resultados
+//					}
+//					
+					System.out.println(msgRecibo+" - el mensjae que recibi");
 
 					/* Envio respuesta al Cliente */
+					String obj1 = "OK";
+					salidaACliente.writeObject(obj1); // Se debe cerrar
+//					salidaACliente.flush();
 
-					salidaACliente = new PrintWriter(out); // Se debe cerrar
-					salidaACliente.println("Feedback");
-					salidaACliente.flush();
-
-				}
+//				}
 			}
 
-		} catch (IOException ex) {
+		} catch (IOException | ClassNotFoundException ex) {
 			System.out.println("Problemas al querer leer otra petición: " + ex.getMessage());
 		}
 
