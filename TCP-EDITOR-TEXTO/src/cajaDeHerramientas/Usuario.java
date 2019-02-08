@@ -46,7 +46,7 @@ public class Usuario {
 		return mensajeError;
 	}
 
-	public void enviarMsg() {
+	public void enviarMsg(String consultaAlServidor) {
 		try {
 			this.outPutStream = client.getOutputStream();
 			this.msgSalida = "el msg";
