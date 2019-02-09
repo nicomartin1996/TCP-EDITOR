@@ -1,7 +1,6 @@
 package pruebasClases;
 
-import static org.junit.Assert.assertEquals;
-
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import cajaDeHerramientas.Objeto;
@@ -18,7 +17,7 @@ class TestClienteServidor {
 		System.out.println("Pase la barrear");
 		Objeto objFeedback= usu.recibirMsg();
 		String objEnString = (String) objFeedback.getObj();
-		assertEquals("OK", objEnString);
+		Assert.assertEquals("OK", objEnString);
 	}
 
 }

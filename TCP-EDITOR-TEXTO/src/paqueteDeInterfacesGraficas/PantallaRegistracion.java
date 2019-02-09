@@ -25,7 +25,8 @@ public class PantallaRegistracion extends JFrame {
 	private JTextField usuario;
 	private JTextField estado;
 	private JPasswordField password;
-	Usuario cli = new Usuario("192.168.1.50",5000);
+	Usuario cli = new Usuario("192.168.1.51",5000);
+	private JTextField textFieldEmail;
 	public PantallaRegistracion() {
 
 		
@@ -102,6 +103,14 @@ public class PantallaRegistracion extends JFrame {
 		});
 		btnVolver.setBounds(496, 346, 89, 23);
 		contentPane.add(btnVolver);
+		
+		textFieldEmail = new JTextField();
+		textFieldEmail.setColumns(10);
+		textFieldEmail.setBounds(335, 165, 237, 20);
+		contentPane.add(textFieldEmail);
+		
+		JLabel lblEmail = new JLabel("Email");
+		lblEmail.setBounds(198, 168, 117, 14);
+		contentPane.add(lblEmail);
 	}
-
 }

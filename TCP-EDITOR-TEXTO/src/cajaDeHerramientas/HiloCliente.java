@@ -45,12 +45,8 @@ public class HiloCliente extends Thread{
 			ObjectOutputStream salidaACliente = null;
 			while (true) {
 				/* Recibo Consulta de cliente */
-				System.out.println("Hola entre11 antes");
 				reciboMsg = new ObjectInputStream(cliente.getInputStream());
-//				if (reciboMsg != null) {
-					System.out.println("Hola entre");
 					Objeto msgRecibo =(Objeto)reciboMsg.readObject();
-//					Objeto obj = (Objeto) msgRecibo;
 					System.out.println(msgRecibo.getObj()+" - el obj");
 //					System.out.println("Siendo Sv, Recibo parametro = " + c.getSolicitud() + ", " + c.getResultado());
 
@@ -68,10 +64,10 @@ public class HiloCliente extends Thread{
 
 					/* Envio respuesta al Cliente */
 					String obj1 = "OK";
-					salidaACliente.writeObject(obj1); // Se debe cerrar
-//					salidaACliente.flush();
+					Objeto obj = new Objeto (obj1);
+					salidaACliente = new ObjectOutputStream(cliente.getOutputStream());
+					salidaACliente.writeObject(obj); // Se debe cerrar
 
-//				}
 			}
 
 		} catch (IOException | ClassNotFoundException ex) {

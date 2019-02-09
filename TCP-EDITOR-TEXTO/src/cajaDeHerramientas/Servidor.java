@@ -1,8 +1,6 @@
 package cajaDeHerramientas;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -32,45 +30,12 @@ public class Servidor {
 				System.out.println("Servidor esperando clientes!");
 				clientSocket = serverSocket.accept();
 				System.out.println("conexion aceptada!");
-//				HiloCliente hiloCliente = new HiloCliente(idSesion, clientSocket);
-//				hiloCliente.start();
+				HiloCliente hiloCliente = new HiloCliente(idSesion, clientSocket);
+				hiloCliente.start();
 				idSesion++;
-				
-				
-				ObjectInputStream reciboMsg ;
-				ObjectOutputStream salidaACliente = null;
-
-					/* Recibo Consulta de cliente */
-					System.out.println("Hola entre11 antes");
-					reciboMsg = new ObjectInputStream(clientSocket.getInputStream());
-//					if (reciboMsg != null) {
-						System.out.println("Hola entre");
-						Objeto msgRecibo =(Objeto)reciboMsg.readObject();
-//						Objeto obj = (Objeto) msgRecibo;
-						System.out.println(msgRecibo.getObj()+" - el obj");
-//						System.out.println("Siendo Sv, Recibo parametro = " + c.getSolicitud() + ", " + c.getResultado());
-
-//						String resultado = procesarConsulta("","");
-//						if (resultado.equals("OK")) {
-	//
-//							//Resultados
-	//
-//						} else {
-	//
-//							//Resultados
-//						}
-//						
-						System.out.println(msgRecibo+" - el mensjae que recibi");
-
-						/* Envio respuesta al Cliente */
-						String obj1 = "OK";
-						Objeto o = new Objeto(obj1);
-						salidaACliente = new ObjectOutputStream(clientSocket.getOutputStream());
-						salidaACliente.writeObject(o); // Se debe cerrar
-						salidaACliente.flush();
 
 			}
-		} catch (IOException | ClassNotFoundException ex) {
+		} catch (IOException ex) {
 			System.out.println(ex);
 		}
 	}
