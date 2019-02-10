@@ -13,24 +13,28 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import cajaDeHerramientas.Cliente;
+import cajaDeHerramientas.Msg;
 import cajaDeHerramientas.Usuario;
+import paqueteDeDatos.PaqueteInicioSesion;
 
 public class PantallaSesion extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private JPanel pantallaSesion;
-	private JTextField usuario;
+	private JTextField email;
 	private JPasswordField password;
 	private JTextField estado;
-	private Usuario cli;
+	private Cliente cli;
 	private String actionListenerActivada = null;
-	private String usuario1;
+	private Usuario usr;
+	private JTextField tfnombreUsuario;
 
 	public String obtenerAccionLanzada() {
 		return actionListenerActivada;
 	}
 
-	public Usuario obtenerSocketCliente() {
+	public Cliente obtenerSocketCliente() {
 		return cli;
 	}
 
@@ -39,7 +43,7 @@ public class PantallaSesion extends JFrame {
 	}
 
 	public PantallaSesion() {
-		setTitle("Juego");
+		setTitle("Iniciar sesión");
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 800, 600);
@@ -49,36 +53,41 @@ public class PantallaSesion extends JFrame {
 		setContentPane(pantallaSesion);
 		pantallaSesion.setLayout(null);
 		setLocationRelativeTo(null);
-		usuario = new JTextField();
-		usuario.setText("");
-		usuario.setBounds(320, 277, 164, 20);
-		pantallaSesion.add(usuario);
-		usuario.setColumns(10);
-		cli = new Usuario("192.168.1.51", 5000);
+		email = new JTextField();
+		email.setText("");
+		email.setBounds(320, 277, 164, 20);
+		pantallaSesion.add(email);
+		email.setColumns(10);
+		cli = new Cliente("localhost", 5000);
 		JButton btnIngresar = new JButton("Ingresar");
 		btnIngresar.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent es) {
 
-				if (usuario.getText().isEmpty() || password.getText().isEmpty() || usuario.getText().equals(" ")
+				if (email.getText().isEmpty() || password.getText().isEmpty() || email.getText().equals(" ")
 						|| password.getText().equals(" ")) {
-					estado.setText("Debe ingresar el usuario y contraseña para poder ingresar al juego.");
+					estado.setText("Debe ingresar el email y contraseña para poder ingresar al editor.");
 					estado.setBackground(Color.RED);
 				} else {
-					usuario1 = usuario.getText();
-					//Armo consulta y envio al servidor
-//					cli.enviarMsg(consultaAlServidor);
-					//Recibo el msg
-//					if ("OK") {
-						System.out.println("Todo correcto");
-						actionListenerActivada = es.getActionCommand();
-						estado.setText("Ingresar");
-						estado.setBackground(Color.GREEN);
-//					} else {
-						estado.setText("El nombre de usuario o contraseña no son correctas. Ingrese nuevamente!");
-						estado.setBackground(Color.RED);
-//					}
+						String nombreUsuario = tfnombreUsuario.getText();
+						String emailUsuario  = email.getText();
+						String pass = password.getText();
+						PaqueteInicioSesion packInicioSesion = new PaqueteInicioSesion(emailUsuario,nombreUsuario, pass);
+						Msg msgAEnviar = new Msg("iniciarsesion", packInicioSesion);
+						cli.enviarMsg(msgAEnviar);
+						Msg msgARecibirDelSv = cli.recibirMsg();
+						
+						if (msgARecibirDelSv.getAccion().equals("OK")) {
+							usr = new Usuario (nombreUsuario,emailUsuario);
+							System.out.println("Todo correcto");
+							actionListenerActivada = es.getActionCommand();
+							estado.setText("Bienvenido "+nombreUsuario+"!!");
+							estado.setBackground(Color.GREEN);
+						}else {
+							estado.setText("El nombre de usuario o contraseña no son correctas. Ingrese nuevamente!");
+							estado.setBackground(Color.RED);
+						}
 				}
 
 			}
@@ -99,7 +108,7 @@ public class PantallaSesion extends JFrame {
 		btnRegistrar.setBounds(421, 368, 112, 23);
 		pantallaSesion.add(btnRegistrar);
 
-		JLabel lblUsuario = new JLabel("Usuario");
+		JLabel lblUsuario = new JLabel("Email");
 		lblUsuario.setBounds(245, 280, 46, 14);
 		pantallaSesion.add(lblUsuario);
 
@@ -116,20 +125,25 @@ public class PantallaSesion extends JFrame {
 		estado.setBounds(0, 551, 794, 20);
 		pantallaSesion.add(estado);
 		estado.setColumns(10);
+		
+		tfnombreUsuario = new JTextField();
+		tfnombreUsuario.setText("");
+		tfnombreUsuario.setColumns(10);
+		tfnombreUsuario.setBounds(320, 246, 164, 20);
+		pantallaSesion.add(tfnombreUsuario);
+		
+		JLabel nombreUsuario = new JLabel("Su nombre");
+		nombreUsuario.setBounds(245, 249, 65, 14);
+		pantallaSesion.add(nombreUsuario);
 
 		if (cli.obtenerMsgErr() != null) {
 			estado.setText(cli.obtenerMsgErr() + ". Salga del juego y reinicie el Servidor por favor!.");
 			estado.setBackground(Color.RED);
 		}
 
-		///// Temporal
-//		usuario.setText("nicoDrugstore");
-//		password.setText("Configuracion1");
-
 	}
 
-	public String getUsuario() {
-		return usuario1;
+	public Usuario getUsuario() {
+		return usr;
 	}
-
 }

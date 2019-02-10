@@ -8,65 +8,44 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
+
+import paqueteDeDatos.PaqueteInicioSesion;
 
 public class HiloCliente extends Thread{
 
 	private Socket cliente;
 	private int idSesion;
-	private static ArrayList<String> usuariosConectados = new ArrayList<>();
-	private int i = 0;
-//	private InputStream in;
-//	private OutputStream out;
-	private static boolean puedeActualizar;
+	private static ArrayList<Usuario> usuariosConectados = new ArrayList<>();
 
 	// En el constructor recibe y guarda los parámetros que sean necesarios.
 	// En este caso una lista con toda la conversación y el socket que debe
 	// atender.
-//	public HiloCliente(int idSesion, Socket cliente, ArrayList<Jugador> jugadoresConectados) {
-	public HiloCliente(int idSesion, Socket cliente) {
+	public HiloCliente(int idSesion, Socket cliente,ArrayList<Usuario> usuariosConectados) {
 		this.cliente = cliente;
 		this.idSesion = idSesion;
-		puedeActualizar = true;
-//		try {
-//			this.out = cliente.getOutputStream(); // Se debe cerrar
-//			this.in = cliente.getInputStream();
-//		} catch (IOException e) {
-//
-//			e.printStackTrace();
-//		}
+		HiloCliente.usuariosConectados = usuariosConectados;
 	}
 
 	@Override
 	public void run() {
 
 		try {
-			i++;
 			ObjectInputStream reciboMsg ;
 			ObjectOutputStream salidaACliente = null;
 			while (true) {
+				
 				/* Recibo Consulta de cliente */
-				reciboMsg = new ObjectInputStream(cliente.getInputStream());
-					Objeto msgRecibo =(Objeto)reciboMsg.readObject();
-					System.out.println(msgRecibo.getObj()+" - el obj");
-//					System.out.println("Siendo Sv, Recibo parametro = " + c.getSolicitud() + ", " + c.getResultado());
+			    reciboMsg = new ObjectInputStream(cliente.getInputStream());
+				Msg msgRecibo =(Msg)reciboMsg.readObject();
+				
+				PaqueteInicioSesion packInicio = (PaqueteInicioSesion)msgRecibo.getObj();
+				System.out.println("El mensaje: "+msgRecibo.getAccion()+" objeto: "+packInicio.getUsuario());
+				Msg resultado = procesarConsulta(msgRecibo);
 
-//					String resultado = procesarConsulta("","");
-//					if (resultado.equals("OK")) {
-//
-//						//Resultados
-//
-//					} else {
-//
-//						//Resultados
-//					}
-//					
-					System.out.println(msgRecibo+" - el mensjae que recibi");
-
-					/* Envio respuesta al Cliente */
-					String obj1 = "OK";
-					Objeto obj = new Objeto (obj1);
-					salidaACliente = new ObjectOutputStream(cliente.getOutputStream());
-					salidaACliente.writeObject(obj); // Se debe cerrar
+				/* Envio respuesta al Cliente */
+				salidaACliente = new ObjectOutputStream(cliente.getOutputStream());
+				salidaACliente.writeObject(resultado); // Se debe cerrar
 
 			}
 
@@ -82,14 +61,45 @@ public class HiloCliente extends Thread{
 	 * @return String
 	 */
 
-	public String procesarConsulta(String consulta, String info) {
+	public Msg procesarConsulta(Msg msg) {
 		ConexionBD conexion = new ConexionBD();
 		Connection con = ConexionBD.getConexion();
-		String result = "NO_OK";
-		String[] infoUnzip = info.split("-");
-//		System.out.println("Consulta: " + consulta + "");
-
+		Msg result = new Msg("NO_OK", null);
+		
+//		String info =  (String)msg.getObj();
+		String consulta = msg.getAccion();
+		
+//		String[] infoUnzip = info.split("-");
+		PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
+		String[] infoUnzip = new String[3];
+		infoUnzip[0] = userQuePidePeticion.getEmail();
+		infoUnzip[1] = userQuePidePeticion.getPass();
+		infoUnzip[2] = userQuePidePeticion.getUsuario();
 		if (consulta.equals("actualizarPosicion")) {
+
+		}
+		if (consulta.equals("listaUsuarios")) {
+			
+			ArrayList<String> emails = obtenerAmigos(infoUnzip[0], conexion, con);
+			Iterator<String> it = emails.iterator();
+			ArrayList<Usuario> usuariosAmigos = new ArrayList<>();
+			while (it.hasNext()) {
+				Iterator<Usuario> it2 = usuariosConectados.iterator();
+				String emailAmigo = it.next();
+				boolean estaConectado = false;
+				while(it2.hasNext()) {
+					
+					Usuario usuarioAux = it2.next();
+					if (usuarioAux.getEmail().equals(emailAmigo)) {
+						usuariosAmigos.add(usuarioAux);
+						estaConectado = true;
+					}
+				}
+				if (estaConectado == false) {
+					usuariosAmigos.add(new Usuario(infoUnzip[2],emailAmigo));
+				}	
+			}
+			result = new Msg("OK", usuariosAmigos);
 
 		}
 
@@ -97,16 +107,23 @@ public class HiloCliente extends Thread{
 
 //			System.out.println("1: " + infoUnzip[0] + " 2:" + infoUnzip[1] + " Datos");
 			if (existeCliente(infoUnzip[0], infoUnzip[1], conexion, con) == false) {
-				result = "OK";
+				result = new Msg("OK", null);
 			}
 		}
 
 		if (consulta.equals("iniciarsesion")) {
+//			PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
+//			String[] infoUnzip = new String[3];
+//			infoUnzip[0] = userQuePidePeticion.getEmail();
+//			infoUnzip[1] = userQuePidePeticion.getPass();
+//			infoUnzip[2] = userQuePidePeticion.getUsuario();
 
 			ResultSet res = null;
 			Integer cantidad = 0;
-			String sqlExiste = "SELECT count(*) as Cantidad FROM usuarios WHERE usuario = '" + infoUnzip[0]
-					+ "' and pass = '" + infoUnzip[1] + "' ";
+//			String sqlExiste = "SELECT count(*) as Cantidad FROM usuarios WHERE usuario = '" + infoUnzip[2]
+//					+ "' and pass = '" + infoUnzip[1] + "' and email = '"+infoUnzip[0]+"'";
+			String sqlExiste = "SELECT count(*) as Cantidad FROM usuarios WHERE email = '" + infoUnzip[0]
+					+ "' and pass = '" + infoUnzip[1] + "'";
 			try {
 				res = (ResultSet) conexion.Consulta(sqlExiste, con);
 				res.next();
@@ -118,7 +135,8 @@ public class HiloCliente extends Thread{
 			}
 
 			if (cantidad > 0) {
-				result = "OK";
+				usuariosConectados.add(new Usuario(infoUnzip[2],infoUnzip[0]));
+				result = new Msg("OK", null);
 
 			} else {
 				
@@ -127,7 +145,7 @@ public class HiloCliente extends Thread{
 		}
 
 		if (consulta.equals("actualizarUsuariosConectados")) {
-			result = "OK";
+			result = new Msg("OK", null);
 
 		}
 
@@ -140,11 +158,28 @@ public class HiloCliente extends Thread{
 
 		return result;
 	}
-
-	public static boolean existeCliente(String usuario, String password, ConexionBD conexion, Connection con) {
+	
+	public static ArrayList<String> obtenerAmigos(String email, ConexionBD conexion, Connection con) {
+		ResultSet res = null;
+		ArrayList<String> emailAmigos = null;
+		String sqlAmigos = "SELECT usuarioAmigo FROM amigos WHERE usuario = '" +email+ "'";
+		try {
+			res = (ResultSet) conexion.Consulta(sqlAmigos, con);
+			emailAmigos = new ArrayList<>();
+			while (res.next()) {
+				emailAmigos.add(res.getString(1));	
+			}	
+		} catch (SQLException e) {
+			e.printStackTrace();
+			
+		}
+		return emailAmigos;
+	}
+	
+	public static boolean existeCliente(String email, String password, ConexionBD conexion, Connection con) {
 		ResultSet res = null;
 		Integer cantidad = 0;
-		String sqlExiste = "SELECT count(*) as Cantidad FROM usuarios WHERE usuario = '" + usuario + "' ";
+		String sqlExiste = "SELECT count(*) as Cantidad FROM usuarios WHERE email = '" + email + "' ";
 		try {
 			res = (ResultSet) conexion.Consulta(sqlExiste, con);
 			res.next();
@@ -157,7 +192,7 @@ public class HiloCliente extends Thread{
 			return true;
 		} else {
 			if (cantidad <= 0) {
-				sqlExiste = "INSERT INTO usuarios (usuario,pass) VALUES ('" + usuario + "','" + password + "')";
+				sqlExiste = "INSERT INTO usuarios (email,pass) VALUES ('" + email + "','" + password + "')";
 				System.out.println("sql insert:" + sqlExiste);
 				try {
 					if (((boolean) conexion.Consulta(sqlExiste, con)) == false) {
@@ -170,7 +205,4 @@ public class HiloCliente extends Thread{
 		}
 		return false;
 	}
-
-
-
 }

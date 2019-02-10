@@ -1,12 +1,13 @@
 package paqueteDeInterfacesGraficas;
 
+import cajaDeHerramientas.Cliente;
 import cajaDeHerramientas.Usuario;
 
 public class ControlPantallas {
 	private static boolean fun = false;
 	private static PantallaEditor pantallaPrincipal;
 	private static PanelPrincipal panelPrincipal;
-	private static Usuario user = null;
+	private static Cliente userCli = null;
 
 	public static void iniciarEditor() {
 		fun = true;
@@ -31,14 +32,14 @@ public class ControlPantallas {
 			}
 
 		}
-		user = pantallaInicio.obtenerSocketCliente();
-		String usuario = pantallaInicio.getUsuario();
+		userCli = pantallaInicio.obtenerSocketCliente();
+		Usuario usuario = pantallaInicio.getUsuario();
 		pantallaInicio.dispose();
-		panelPrincipal = new PanelPrincipal(800, 600, user, usuario);
+		panelPrincipal = new PanelPrincipal(800, 600, userCli, usuario);
 		setPantallaPrincipal(new PantallaEditor("Editor En Tiempo Real", panelPrincipal, 800, 600));
 	}
 
-	public static void cerrarJuego() {
+	public static void cerrarEditor() {
 		fun = false;
 	}
 
@@ -57,7 +58,7 @@ public class ControlPantallas {
 			try {
 				actualizar();
 				dibujar();
-				Thread.sleep(30);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

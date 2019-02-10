@@ -9,7 +9,7 @@ public class Servidor {
 
 	private int PORT = 5000;
 	private static ServerSocket serverSocket;
-	private static ArrayList<String> usuariosConectados = new ArrayList<>();
+	private static ArrayList<Usuario> usuariosConectados = new ArrayList<>();
 
 	/**
 	 * @param args the command line arguments
@@ -30,7 +30,7 @@ public class Servidor {
 				System.out.println("Servidor esperando clientes!");
 				clientSocket = serverSocket.accept();
 				System.out.println("conexion aceptada!");
-				HiloCliente hiloCliente = new HiloCliente(idSesion, clientSocket);
+				HiloCliente hiloCliente = new HiloCliente(idSesion, clientSocket,usuariosConectados);
 				hiloCliente.start();
 				idSesion++;
 

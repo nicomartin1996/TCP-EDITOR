@@ -12,7 +12,8 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-import cajaDeHerramientas.Usuario;
+import cajaDeHerramientas.Cliente;
+import cajaDeHerramientas.Msg;
 
 public class PantallaRegistracion extends JFrame {
 
@@ -25,7 +26,7 @@ public class PantallaRegistracion extends JFrame {
 	private JTextField usuario;
 	private JTextField estado;
 	private JPasswordField password;
-	Usuario cli = new Usuario("192.168.1.51",5000);
+	Cliente cli = new Cliente("192.168.1.51",5000);
 	private JTextField textFieldEmail;
 	public PantallaRegistracion() {
 
@@ -50,18 +51,29 @@ public class PantallaRegistracion extends JFrame {
 		JButton btnRegistrarse = new JButton("Registrarse");
 		btnRegistrarse.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			    String consultaAlServidor = "la consulta";
-			    cli.enviarMsg(consultaAlServidor);
-			    //Tengo que recibir el msg
+				
+			    String datos;
+			    StringBuilder stringBuilder = new StringBuilder();
+			    stringBuilder.append(textFieldEmail.getText());
+				stringBuilder.append("-");
+				stringBuilder.append(password.getText());
+				stringBuilder.append("-");
+				stringBuilder.append(usuario.getText());
+				datos = stringBuilder.toString();
+			    
+			    Msg msgEnviarASv = new Msg ("registrar",datos);
+			    cli.enviarMsg(msgEnviarASv); 
+			    Msg msgRecibido = cli.recibirMsg();
+			    
 			    cli.cerrarComunicacion();
 				
-//				if () {
+				if (msgRecibido.getAccion().equals("OK")) {
 					estado.setText("Te haz registrado correctamente!");
 					estado.setBackground(Color.GREEN);
-//				}else {
+				}else {
 					estado.setText("El nombre de usuario Ya existe!");
 					estado.setBackground(Color.RED);
-//				}
+			    }
 
 			}
 		});
