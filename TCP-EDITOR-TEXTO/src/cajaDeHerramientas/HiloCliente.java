@@ -91,13 +91,11 @@ public class HiloCliente extends Thread{
 					
 					Usuario usuarioAux = it2.next();
 					if (usuarioAux.getEmail().equals(emailAmigo)) {
-						usuariosAmigos.add(usuarioAux);
-						estaConectado = true;
+						estaConectado = true;	
 					}
 				}
-				if (estaConectado == false) {
-					usuariosAmigos.add(new Usuario(infoUnzip[2],emailAmigo));
-				}	
+				usuariosAmigos.add(new Usuario(infoUnzip[2],emailAmigo,estaConectado));
+	
 			}
 			result = new Msg("OK", usuariosAmigos);
 

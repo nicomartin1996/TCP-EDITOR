@@ -18,12 +18,13 @@ public class PantallaEditor extends JFrame {
 	public PantallaEditor(String nombre,PanelPrincipal JPanel, int ancho,int alto) {
 		this.ancho = ancho;
 		this.alto = alto;
-		this.setLocationRelativeTo(null);
+		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setTitle(nombre);
 		this.setResizable(false);
 		this.setLayout(new BorderLayout());
 		this.add(JPanel);
+		this.setLocationRelativeTo(null);
 		this.pack();
 		this.setVisible(true);
 	}

@@ -8,6 +8,7 @@ public class Usuario implements Serializable {
 	private String email;
 	private String usu;
 	private String pass;
+	private boolean estaConectado;
 
 	public Usuario(String pass,String name,String email) {
 		this.usu = name; 
@@ -18,6 +19,12 @@ public class Usuario implements Serializable {
 	public Usuario(String name,String email) {
 		this.usu = name; 
 		this.email = email; 
+	}
+	
+	public Usuario(String name,String email,boolean estaConectado) {
+		this.usu = name; 
+		this.email = email;
+		this.setEstaConectado(estaConectado);
 	}
 
 	public String getEmail() {
@@ -42,5 +49,13 @@ public class Usuario implements Serializable {
 
 	public void setPass(String pass) {
 		this.pass = pass;
+	}
+
+	public boolean EstaConectado() {
+		return estaConectado;
+	}
+
+	public void setEstaConectado(boolean estaConectado) {
+		this.estaConectado = estaConectado;
 	}
 }

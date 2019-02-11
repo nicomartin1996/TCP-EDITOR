@@ -8,6 +8,7 @@ public class ControlPantallas {
 	private static PantallaEditor pantallaPrincipal;
 	private static PanelPrincipal panelPrincipal;
 	private static Cliente userCli = null;
+	
 
 	public static void iniciarEditor() {
 		fun = true;
@@ -65,11 +66,6 @@ public class ControlPantallas {
 			}
 		}
 	}
-
-//	public static boolean obtenerEstadoEscape() {
-//		// TODO Auto-generated method stub
-//		return pantallaPrincipal.obtenerEstadoEscape();
-//	}
 
 	public static void main(String[] args) {
 		iniciarEditor();
