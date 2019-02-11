@@ -83,6 +83,10 @@ public class FramePruebas extends JFrame {
 		contentPane.add(btnEdicion);
 		
 		JButton btnCompartir = new JButton("CompartirArchivo");
+		btnCompartir.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
 		btnCompartir.setBounds(379, 495, 148, 23);
 		contentPane.add(btnCompartir);
 		

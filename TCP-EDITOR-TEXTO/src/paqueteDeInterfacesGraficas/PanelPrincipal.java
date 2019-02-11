@@ -174,6 +174,20 @@ public class PanelPrincipal extends JPanel{
 				listarUsuariosConectados();
 			}
 		});
+		
+		btnCompartir.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+//				Usuario usuario = (Usuario) listAmigosConectados.getSelectedValue();
+				String usuarioSeleccionado = (String) listAmigosConectados.getSelectedValue();
+				String[] informacionSeparada = usuarioSeleccionado.split(":");
+				if (!informacionSeparada[1].equals("Desconectado")) {
+					//Tomo usuarios que esten conectados.
+					Usuario usu = new Usuario ("Usr",informacionSeparada[1]);
+					
+				}
+				System.out.println(informacionSeparada[0]+" "+informacionSeparada[1]);
+			}
+		});
 
 	}
 	
