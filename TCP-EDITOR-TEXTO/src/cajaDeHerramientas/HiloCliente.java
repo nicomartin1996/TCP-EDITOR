@@ -62,8 +62,10 @@ public class HiloCliente extends Thread{
 	 */
 
 	public Msg procesarConsulta(Msg msg) {
-		ConexionBD conexion = new ConexionBD();
-		Connection con = ConexionBD.getConexion();
+		ConexionBDLite conexion = new ConexionBDLite("NicoBD.db", "engine", "configuracion1");
+		Connection con = conexion.getConexion();
+//		ConexionBD conexion = new ConexionBD();
+//		Connection con = ConexionBD.getConexion();
 		Msg result = new Msg("NO_OK", null);
 		
 //		String info =  (String)msg.getObj();
@@ -153,11 +155,18 @@ public class HiloCliente extends Thread{
 		if (consulta.equals("5")) {
 
 		}
-
+		
+		
+		try {
+			con.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return result;
 	}
 	
-	public static ArrayList<String> obtenerAmigos(String email, ConexionBD conexion, Connection con) {
+	public static ArrayList<String> obtenerAmigos(String email, ConexionBDLite conexion, Connection con) {
 		ResultSet res = null;
 		ArrayList<String> emailAmigos = null;
 		String sqlAmigos = "SELECT usuarioAmigo FROM amigos WHERE usuario = '" +email+ "'";
@@ -174,7 +183,7 @@ public class HiloCliente extends Thread{
 		return emailAmigos;
 	}
 	
-	public static boolean existeCliente(String email, String password, ConexionBD conexion, Connection con) {
+	public static boolean existeCliente(String email, String password, ConexionBDLite conexion, Connection con) {
 		ResultSet res = null;
 		Integer cantidad = 0;
 		String sqlExiste = "SELECT count(*) as Cantidad FROM usuarios WHERE email = '" + email + "' ";
