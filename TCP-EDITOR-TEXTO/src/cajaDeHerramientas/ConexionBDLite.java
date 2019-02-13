@@ -29,7 +29,8 @@ public class ConexionBDLite {
 	public Object Consulta(String consulta,Connection conexion) throws SQLException {
 		Statement state= conexion.createStatement();
 		if (!consulta.contains("SELECT")) {
-			return state.executeUpdate(consulta);
+			 state.executeUpdate(consulta);
+			 return true;
 		}
 		return state.executeQuery(consulta);
 	}

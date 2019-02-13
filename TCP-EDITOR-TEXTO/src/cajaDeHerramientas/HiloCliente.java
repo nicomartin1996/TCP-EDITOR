@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import paqueteDeDatos.PaqueteCrearDocumento;
 import paqueteDeDatos.PaqueteInicioSesion;
 
 public class HiloCliente extends Thread{
@@ -38,9 +39,6 @@ public class HiloCliente extends Thread{
 				/* Recibo Consulta de cliente */
 			    reciboMsg = new ObjectInputStream(cliente.getInputStream());
 				Msg msgRecibo =(Msg)reciboMsg.readObject();
-				
-				PaqueteInicioSesion packInicio = (PaqueteInicioSesion)msgRecibo.getObj();
-				System.out.println("El mensaje: "+msgRecibo.getAccion()+" objeto: "+packInicio.getUsuario());
 				Msg resultado = procesarConsulta(msgRecibo);
 
 				/* Envio respuesta al Cliente */
@@ -64,23 +62,58 @@ public class HiloCliente extends Thread{
 	public Msg procesarConsulta(Msg msg) {
 		ConexionBDLite conexion = new ConexionBDLite("NicoBD.db", "engine", "configuracion1");
 		Connection con = conexion.getConexion();
-//		ConexionBD conexion = new ConexionBD();
-//		Connection con = ConexionBD.getConexion();
 		Msg result = new Msg("NO_OK", null);
-		
-//		String info =  (String)msg.getObj();
 		String consulta = msg.getAccion();
-		
-//		String[] infoUnzip = info.split("-");
-		PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
-		String[] infoUnzip = new String[3];
-		infoUnzip[0] = userQuePidePeticion.getEmail();
-		infoUnzip[1] = userQuePidePeticion.getPass();
-		infoUnzip[2] = userQuePidePeticion.getUsuario();
-		if (consulta.equals("actualizarPosicion")) {
+//		PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
+//		String[] infoUnzip = new String[3];
+//		infoUnzip[0] = userQuePidePeticion.getEmail();
+//		infoUnzip[1] = userQuePidePeticion.getPass();
+//		infoUnzip[2] = userQuePidePeticion.getUsuario();
+		if (consulta.equals("listarDoc")) {
+			PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
+			String[] infoUnzip = new String[3];
+			infoUnzip[0] = userQuePidePeticion.getEmail();
+			infoUnzip[1] = userQuePidePeticion.getPass();
+			infoUnzip[2] = userQuePidePeticion.getUsuario();
+			ArrayList<Documento> documentos = new ArrayList<>();
+			try {			
+				String sql = "SELECT * FROM archivos WHERE usrCreador = '"+infoUnzip[0]+"' OR usrCompartido = '"+infoUnzip[0]+"'";
+				ResultSet res;
+				res = (ResultSet) conexion.Consulta(sql, con);
+				while (res.next()) {
+					Documento doc = new Documento(res.getString(1), res.getString(2),  res.getString(6), res.getString(3),res.getString(4), res.getBytes(5));
+					documentos.add(doc);
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
+			result = new Msg("OK", documentos);
+		}
+		if (consulta.equals("crearDocumento")) {
+			PaqueteCrearDocumento crearDoc = (PaqueteCrearDocumento)msg.getObj();
+			String emailUsr = crearDoc.getEmailUsr();
+			String fecha = crearDoc.getFecha();
+			String nombreArchivo = crearDoc.getNombre();
+			byte[] archivo = crearDoc.getArch();
+			String sql = "INSERT INTO archivos (usrCreador,usrCompartido,fecUltMod,usrUltModifico,archivo,nombreArchivo) VALUES ('"+emailUsr+"',null,'"+fecha+"','"+emailUsr+"','"+archivo+"','"+nombreArchivo+"' )";
+			try {
+				if ((boolean)conexion.Consulta(sql, con) == true) {
+					System.out.println("Se insertó correctamente!");
+					result = new Msg("OK", null);
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		if (consulta.equals("listaUsuarios")) {
+			PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
+			String[] infoUnzip = new String[3];
+			infoUnzip[0] = userQuePidePeticion.getEmail();
+			infoUnzip[1] = userQuePidePeticion.getPass();
+			infoUnzip[2] = userQuePidePeticion.getUsuario();
 			
 			ArrayList<String> emails = obtenerAmigos(infoUnzip[0], conexion, con);
 			Iterator<String> it = emails.iterator();
@@ -104,6 +137,11 @@ public class HiloCliente extends Thread{
 		}
 
 		if (consulta.equals("registrar")) {
+			PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
+			String[] infoUnzip = new String[3];
+			infoUnzip[0] = userQuePidePeticion.getEmail();
+			infoUnzip[1] = userQuePidePeticion.getPass();
+			infoUnzip[2] = userQuePidePeticion.getUsuario();
 
 //			System.out.println("1: " + infoUnzip[0] + " 2:" + infoUnzip[1] + " Datos");
 			if (existeCliente(infoUnzip[0], infoUnzip[1], conexion, con) == false) {
@@ -112,11 +150,11 @@ public class HiloCliente extends Thread{
 		}
 
 		if (consulta.equals("iniciarsesion")) {
-//			PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
-//			String[] infoUnzip = new String[3];
-//			infoUnzip[0] = userQuePidePeticion.getEmail();
-//			infoUnzip[1] = userQuePidePeticion.getPass();
-//			infoUnzip[2] = userQuePidePeticion.getUsuario();
+			PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
+			String[] infoUnzip = new String[3];
+			infoUnzip[0] = userQuePidePeticion.getEmail();
+			infoUnzip[1] = userQuePidePeticion.getPass();
+			infoUnzip[2] = userQuePidePeticion.getUsuario();
 
 			ResultSet res = null;
 			Integer cantidad = 0;

@@ -59,6 +59,9 @@ public class PantallaSesion extends JFrame {
 		pantallaSesion.add(email);
 		email.setColumns(10);
 		cli = new Cliente("localhost", 5000);
+		
+		//TEMPORAL 
+
 		JButton btnIngresar = new JButton("Ingresar");
 		btnIngresar.addActionListener(new ActionListener() {
 
@@ -140,10 +143,17 @@ public class PantallaSesion extends JFrame {
 			estado.setText(cli.obtenerMsgErr() + ". Salga del juego y reinicie el Servidor por favor!.");
 			estado.setBackground(Color.RED);
 		}
+		
+		//TEMPORAL
+		email.setText("nico");
+		password.setText("123");
 
 	}
 
 	public Usuario getUsuario() {
 		return usr;
 	}
+	
+
+
 }
