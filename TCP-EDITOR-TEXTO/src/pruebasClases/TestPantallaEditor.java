@@ -32,26 +32,26 @@ class TestPantallaEditor {
 //		String sql = "INSERT INTO amigos (usuario,usuarioAmigo) VALUES ('aldana','nico')";
 //		String sql = "SELECT * FROM usuarios";
 //		String sql = "SELECT * FROM amigos";
-//		String sql = "CREATE TABLE archivos (\r\n" + 
+//		String sql = "CREATE TABLE archivos (\r\n" +
+//				"  cod int PRIMARY KEY,\r\n" +
 //				"  usrCreador      varchar(100),\r\n" + 
 //				"  usrCompartido   varchar(100),\r\n" + 
 //				"  fecUltMod       date,\r\n" + 
 //				"  usrUltModifico  varchar(100),\r\n" + 
 //				"  archivo         blob,\r\n" + 
-//		        "  nombreArchivo   varchar(100),\r\n" +
-//				"  PRIMARY KEY (usrCreador,usrCompartido,fecUltMod,usrUltModifico,archivo)\r\n" + 
+//		        "  nombreArchivo   varchar(100)\r\n" +
 //				");";
-		String sql = "DROP TABLE archivos";
+//		String sql = "DROP TABLE archivos";
 //		String sql = "INSERT INTO archivos (usrCreador,usrCompartido,fecUltMod,usrUltModifico,archivo) VALUES ('nico','aldana','2019-01-31','nico',null );";
 //		String sql = "SELECT * FROM archivos";
-//		String sql = "DELETE FROM archivos";
+		String sql = "DELETE FROM archivos";
 		try {
 //			ResultSet res = (ResultSet) conexion.Consulta(sql, con);
 			if (((boolean) conexion.Consulta(sql, con)) == true) {
 				System.out.println("Se creo la tabla");	
 			}
 //			while (res.next()) {
-//				System.out.println(res.getString(1)+ " - "+res.getString(2));
+//				System.out.println(res.getInt(1)+ " - "+res.getString(2));
 ////				System.out.println(res.getString(1)+ " - "+res.getString(2)+" - "+res.getString(3));
 //			}
 		} catch (SQLException e) {

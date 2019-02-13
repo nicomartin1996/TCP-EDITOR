@@ -18,14 +18,16 @@ public class HiloCliente extends Thread{
 	private Socket cliente;
 	private int idSesion;
 	private static ArrayList<Usuario> usuariosConectados = new ArrayList<>();
+	private static ArrayList<Documento> documentosUsuarios = new ArrayList<>();
 
 	// En el constructor recibe y guarda los parámetros que sean necesarios.
 	// En este caso una lista con toda la conversación y el socket que debe
 	// atender.
-	public HiloCliente(int idSesion, Socket cliente,ArrayList<Usuario> usuariosConectados) {
+	public HiloCliente(int idSesion, Socket cliente,ArrayList<Usuario> usuariosConectados,ArrayList<Documento> docUsuarios) {
 		this.cliente = cliente;
 		this.idSesion = idSesion;
 		HiloCliente.usuariosConectados = usuariosConectados;
+		documentosUsuarios = docUsuarios;
 	}
 
 	@Override
@@ -64,11 +66,18 @@ public class HiloCliente extends Thread{
 		Connection con = conexion.getConexion();
 		Msg result = new Msg("NO_OK", null);
 		String consulta = msg.getAccion();
-//		PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
-//		String[] infoUnzip = new String[3];
-//		infoUnzip[0] = userQuePidePeticion.getEmail();
-//		infoUnzip[1] = userQuePidePeticion.getPass();
-//		infoUnzip[2] = userQuePidePeticion.getUsuario();
+		
+		if (consulta.equals("edicionDoc")) {
+			String codigo  = (String) msg.getObj();
+			int cod = Integer.parseInt(codigo);
+			Iterator<Documento> it= documentosUsuarios.iterator();
+			while (it.hasNext()) {
+				Documento aux = it.next();
+				if (aux.getCodigo() == cod) {
+					result = new Msg ("OK",aux);
+				}	
+			}
+		}
 		if (consulta.equals("listarDoc")) {
 			PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
 			String[] infoUnzip = new String[3];
@@ -81,14 +90,15 @@ public class HiloCliente extends Thread{
 				ResultSet res;
 				res = (ResultSet) conexion.Consulta(sql, con);
 				while (res.next()) {
-					Documento doc = new Documento(res.getString(1), res.getString(2),  res.getString(6), res.getString(3),res.getString(4), res.getBytes(5));
+					Documento doc = new Documento(res.getInt(1),res.getString(2), res.getString(3),  res.getString(7), res.getString(4),res.getString(5), res.getBytes(6));
 					documentos.add(doc);
 				}
+				
+				res.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
 			result = new Msg("OK", documentos);
 		}
 		if (consulta.equals("crearDocumento")) {
@@ -97,7 +107,8 @@ public class HiloCliente extends Thread{
 			String fecha = crearDoc.getFecha();
 			String nombreArchivo = crearDoc.getNombre();
 			byte[] archivo = crearDoc.getArch();
-			String sql = "INSERT INTO archivos (usrCreador,usrCompartido,fecUltMod,usrUltModifico,archivo,nombreArchivo) VALUES ('"+emailUsr+"',null,'"+fecha+"','"+emailUsr+"','"+archivo+"','"+nombreArchivo+"' )";
+			int inc= autoIncremento("SELECT cod FROM archivos ORDER BY cod DESC", conexion, con);
+			String sql = "INSERT INTO archivos (cod,usrCreador,usrCompartido,fecUltMod,usrUltModifico,archivo,nombreArchivo) VALUES ('"+inc+"','"+emailUsr+"',null,'"+fecha+"','"+emailUsr+"','"+archivo+"','"+nombreArchivo+"' )";
 			try {
 				if ((boolean)conexion.Consulta(sql, con) == true) {
 					System.out.println("Se insertó correctamente!");
@@ -166,6 +177,7 @@ public class HiloCliente extends Thread{
 				res = (ResultSet) conexion.Consulta(sqlExiste, con);
 				res.next();
 				cantidad = res.getInt(1);
+				res.close();
 			} catch (SQLException e) {
 
 				System.out.println(e);
@@ -204,6 +216,22 @@ public class HiloCliente extends Thread{
 		return result;
 	}
 	
+	public static int autoIncremento (String sql,ConexionBDLite conexion,Connection con) {
+		ResultSet res = null;
+		Integer cantidad = 0;
+//		String sql = "SELECT id as Cantidad FROM archivos ORDER BY id DESC";
+		try {
+			res = (ResultSet) conexion.Consulta(sql, con);
+			res.next();
+			cantidad = res.getInt(1);
+			res.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return cantidad+1;
+	}
+	
 	public static ArrayList<String> obtenerAmigos(String email, ConexionBDLite conexion, Connection con) {
 		ResultSet res = null;
 		ArrayList<String> emailAmigos = null;
@@ -213,7 +241,8 @@ public class HiloCliente extends Thread{
 			emailAmigos = new ArrayList<>();
 			while (res.next()) {
 				emailAmigos.add(res.getString(1));	
-			}	
+			}
+			res.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 			
@@ -229,6 +258,7 @@ public class HiloCliente extends Thread{
 			res = (ResultSet) conexion.Consulta(sqlExiste, con);
 			res.next();
 			cantidad = res.getInt(1);
+			res.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -248,6 +278,7 @@ public class HiloCliente extends Thread{
 				}
 			}
 		}
+		
 		return false;
 	}
 }

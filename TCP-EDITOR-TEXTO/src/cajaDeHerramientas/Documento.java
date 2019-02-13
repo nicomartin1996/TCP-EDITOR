@@ -1,15 +1,18 @@
 package cajaDeHerramientas;
 
-public class Documento {
+import java.io.Serializable;
+
+public class Documento implements Serializable{
+	private int codigoDoc;
 	private String emailCreador;
 	private String usrCompartido;
 	private String nombreArchivo;
 	private String fechaMod;
 	private String usrUltMod;
 	private byte[] contenidoArchivo;
-	public Documento(String emailCreador, String usrCompartido, String nombreArchivo, String fechaMod,
+	public Documento(int codigo,String emailCreador, String usrCompartido, String nombreArchivo, String fechaMod,
 			String usrUltMod, byte[] cont) {
-
+		this.codigoDoc = codigo;
 		this.emailCreador = emailCreador;
 		this.usrCompartido = usrCompartido;
 		this.nombreArchivo = nombreArchivo;
@@ -52,6 +55,10 @@ public class Documento {
 	}
 	public void setContenidoArchivo(byte[] contenidoArchivo) {
 		this.contenidoArchivo = contenidoArchivo;
+	}
+	public int getCodigo() {
+		// TODO Auto-generated method stub
+		return this.codigoDoc;
 	}
 	
 

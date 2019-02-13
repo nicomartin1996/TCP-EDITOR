@@ -20,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import cajaDeHerramientas.Cliente;
+import cajaDeHerramientas.Documento;
 import cajaDeHerramientas.Msg;
 import cajaDeHerramientas.Usuario;
 import paqueteDeDatos.PaqueteCrearDocumento;
@@ -32,8 +33,10 @@ public class PanelPrincipal extends JPanel{
 	private Usuario usr;
 	private String usuarioLocal;
 	private ArrayList<Usuario> listaUsuarios;
+	private ArrayList<Documento> listaDocumento;
 	private JList listAmigosConectados;
 	private DefaultListModel modeloListaDefault;
+	private DefaultListModel modeloListaDefaultDocu;
 	private Cliente cliente;
 	private JButton btnEliminarArchivo;
 	private JButton btnCrearDoc;
@@ -44,6 +47,8 @@ public class PanelPrincipal extends JPanel{
 	private JButton btnModificarDatosPersonales;
 	private TextArea textArea;
 	private JList listaDocumentos;
+	private boolean modoEdicion = false;
+	private Documento docAEditar;
 	
 		
 	public PanelPrincipal(int ancho, int alto, Cliente usu, Usuario usr) {
@@ -56,6 +61,7 @@ public class PanelPrincipal extends JPanel{
 		this.setLayout(null);
 		initComponent();
 		listarUsuariosConectados(); //Inicializo lista de amigos conectados
+		listarDocumentos();
 	}
 	
 	private void listarUsuariosConectados() {
@@ -85,17 +91,49 @@ public class PanelPrincipal extends JPanel{
 	private void limpiarListaAmigos() {
 		modeloListaDefault.clear();
 	}
-	public void actualizar() {
-//		listarUsuariosConectados();
-		actualizarUsuariosConectados();
+	
+	private void limpiarListaDocumentos() {
+		this.modeloListaDefaultDocu.clear();
 	}
+	
+	public void actualizar() {
+		if (modoEdicion) {
+//			String docSeleccionado = (String) listaDocumentos.getSelectedValue();
+//			String[] informacionSeparada = docSeleccionado.split("|");
+//			String codigo = informacionSeparada[0];
+//			cliente.enviarMsg(new Msg ("edicionDoc",codigo));
+//			Msg mensajeRecibido = cliente.recibirMsg();
+//			docAEditar = (Documento) mensajeRecibido.getObj();
+//			String cadenaLegible;
+//
+//				System.out.println("datos: "+docAEditar.getCodigo()+"-"+docAEditar.getContenidoArchivo());
+//				cadenaLegible = new String(docAEditar.getContenidoArchivo());
+//				textArea.setText(cadenaLegible);
 
-	private void actualizarUsuariosConectados() {
-
+			
+//            InputStream bos = new ByteArrayInputStream(docAEditar.getContenidoArchivo());
+//            try {
+//                int tamanoInput = bos.available();
+//                byte[] datosPDF = new byte[tamanoInput];
+//                bos.read(datosPDF, 0, tamanoInput);
+//                textArea.setText(datosPDF);
+////                OutputStream out = new FileOutputStream("new.txt");
+////				out.write(datosPDF);
+//			} catch (IOException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+		}
 	}
 
 	public void dibujar() {
-		
+
+//		try {
+//			textArea.setText(new String (docAEditar.getContenidoArchivo(),"ISO-8859-1"));
+//		} catch (UnsupportedEncodingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 	
 	
@@ -134,11 +172,7 @@ public class PanelPrincipal extends JPanel{
 		
 		JLabel arbolDocumental = new JLabel("Documentos");
 		arbolDocumental.setBounds(672, 129, 102, 14);
-		this.add(arbolDocumental);
-//		
-//		JLabel lblEditor = new JLabel("Editor");
-//		lblEditor.setBounds(465, 129, 46, 14);
-//		this.add(lblEditor);
+		this.add(arbolDocumental); 
 		
 		btnEdicion = new JButton("Modo edici\u00F3n");
 		btnEdicion.setBounds(300, 154, 270, 23);
@@ -170,9 +204,11 @@ public class PanelPrincipal extends JPanel{
 		
 	    listaDocumentos = new JList();
 		listaDocumentos.setBounds(672, 154,100, 256);
+		this.modeloListaDefaultDocu = new DefaultListModel<>();
 		
 		ScrollPane panelListaDoc = new ScrollPane();
 		panelListaDoc.setBounds(672, 154, 100, 256);
+		listaDocumentos.setModel(modeloListaDefaultDocu);
 		panelListaDoc.add(listaDocumentos);
 		this.add(panelListaDoc);
 		
@@ -186,8 +222,10 @@ public class PanelPrincipal extends JPanel{
 		btnCrearDoc.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String nombreDoc = JOptionPane.showInputDialog("Ingrese el nombre del nuevo documento:");
-				String contDeArchivo =" "; //Se crea el archivo vacio
-				byte[] archivo = new byte[(int) contDeArchivo.length()];
+				String contDeArchivo ="Documento Creado!"; //Se crea el archivo vacio
+//				byte[] archivo = new byte[(int) contDeArchivo.length()];
+				byte[] archivo = null;
+				archivo = contDeArchivo.getBytes();
 				Calendar today = Calendar.getInstance();
 				int mes = today.get(Calendar.MONTH);
 				int anio = today.get(Calendar.YEAR);
@@ -197,6 +235,7 @@ public class PanelPrincipal extends JPanel{
 				Msg mensajeRecibido = cliente.recibirMsg();
 				if (mensajeRecibido.getAccion().equals("OK")) {
 					JOptionPane.showMessageDialog(null, "Documento Creado!", "Nombre Doc.", JOptionPane.INFORMATION_MESSAGE);
+					limpiarListaDocumentos();
 					listarDocumentos();
 				}		
 			}
@@ -206,13 +245,29 @@ public class PanelPrincipal extends JPanel{
 		btnCerrarDoc.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				inicializarMenuPrincipal();
+				modoEdicion = false;
 			}
 		});
 		
 		btnEdicion.addActionListener(new ActionListener() {
+			
+
 			public void actionPerformed(ActionEvent e) {
 				inicializarMenuEdicion();
-				
+				modoEdicion = true;
+				if (modoEdicion) {
+					String docSeleccionado = (String) listaDocumentos.getSelectedValue();
+					String[] informacionSeparada = docSeleccionado.split("|");
+					String codigo = informacionSeparada[0];
+					cliente.enviarMsg(new Msg ("edicionDoc",codigo));
+					Msg mensajeRecibido = cliente.recibirMsg();
+					docAEditar = (Documento) mensajeRecibido.getObj();
+					String cadenaLegible;
+
+						System.out.println("datos: "+docAEditar.getCodigo()+"-"+docAEditar.getContenidoArchivo());
+						cadenaLegible = new String(docAEditar.getContenidoArchivo());
+						textArea.setText(cadenaLegible);
+				}
 			}
 		});
 		
@@ -255,29 +310,24 @@ public class PanelPrincipal extends JPanel{
 		
 		inicializarMenuPrincipal();
 	}
-	
+
 	private void listarDocumentos() {
-		cliente.enviarMsg(new Msg("listaDocumentos",new PaqueteInicioSesion(usr.getEmail(),usr.getUsu(),usr.getPass())));
+		cliente.enviarMsg(new Msg("listarDoc",new PaqueteInicioSesion(usr.getEmail(),usr.getUsu(),usr.getPass())));
 		Msg mensajeDesdeSv = cliente.recibirMsg();
 		if (mensajeDesdeSv.getAccion().equals("OK")) {
-			listaUsuarios = (ArrayList<Usuario>) mensajeDesdeSv.getObj();
-			Iterator<Usuario> it = listaUsuarios.iterator();
+			listaDocumento = (ArrayList<Documento>) mensajeDesdeSv.getObj();
+			Iterator<Documento> it = listaDocumento.iterator();
 			while (it.hasNext()) {
-				Usuario auxiliar = it.next();
-				String email = auxiliar.getEmail();
-				boolean estaConnectado = auxiliar.EstaConectado();
-				String estado = ":Desconectado";
-				if (estaConnectado) {
-					estado = ":Conectado";
-				}
-				modeloListaDefault.addElement(email+" "+estado);			
+				Documento auxiliar = it.next();
+				String nombre = auxiliar.getNombreArchivo();
+				int codigo = auxiliar.getCodigo();
+				modeloListaDefaultDocu.addElement(codigo+"|"+nombre);			
 			}
 			
-			if (modeloListaDefault.isEmpty()) {
-				modeloListaDefault.addElement("Aún no tienes amigos");
+			if (modeloListaDefaultDocu.isEmpty()) {
+				modeloListaDefaultDocu.addElement("Aún no tienes documentos!");
 			}
 		}
-		
 	}
 
 	private void inicializarMenuPrincipal () {
