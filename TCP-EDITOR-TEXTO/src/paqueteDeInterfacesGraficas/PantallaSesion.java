@@ -58,16 +58,13 @@ public class PantallaSesion extends JFrame {
 		email.setBounds(320, 277, 164, 20);
 		pantallaSesion.add(email);
 		email.setColumns(10);
-		cli = new Cliente("localhost", 5000);
-		
-		//TEMPORAL 
 
 		JButton btnIngresar = new JButton("Ingresar");
 		btnIngresar.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent es) {
-
+				cli = new Cliente("localhost", 5000);
 				if (email.getText().isEmpty() || password.getText().isEmpty() || email.getText().equals(" ")
 						|| password.getText().equals(" ")) {
 					estado.setText("Debe ingresar el email y contraseña para poder ingresar al editor.");
@@ -91,6 +88,11 @@ public class PantallaSesion extends JFrame {
 							estado.setText("El nombre de usuario o contraseña no son correctas. Ingrese nuevamente!");
 							estado.setBackground(Color.RED);
 						}
+				}
+				
+				if (cli.obtenerMsgErr() != null) {
+					estado.setText(cli.obtenerMsgErr() + ". Salga del juego y reinicie el Servidor por favor!.");
+					estado.setBackground(Color.RED);
 				}
 
 			}
@@ -138,11 +140,6 @@ public class PantallaSesion extends JFrame {
 		JLabel nombreUsuario = new JLabel("Su nombre");
 		nombreUsuario.setBounds(245, 249, 65, 14);
 		pantallaSesion.add(nombreUsuario);
-
-		if (cli.obtenerMsgErr() != null) {
-			estado.setText(cli.obtenerMsgErr() + ". Salga del juego y reinicie el Servidor por favor!.");
-			estado.setBackground(Color.RED);
-		}
 		
 		//TEMPORAL
 		email.setText("nico");

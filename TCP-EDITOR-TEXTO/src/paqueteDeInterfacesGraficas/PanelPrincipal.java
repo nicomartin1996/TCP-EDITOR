@@ -221,9 +221,12 @@ public class PanelPrincipal extends JPanel{
 		
 		btnCrearDoc.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String nombreDoc = JOptionPane.showInputDialog("Ingrese el nombre del nuevo documento:");
-				String contDeArchivo ="Documento Creado!"; //Se crea el archivo vacio
-//				byte[] archivo = new byte[(int) contDeArchivo.length()];
+				String nombreDoc = null;
+				nombreDoc = JOptionPane.showInputDialog("Ingrese el nombre del nuevo documento:");
+				if (nombreDoc != null) {
+					
+				
+				String contDeArchivo ="funciona"; //Se crea el archivo vacio
 				byte[] archivo = null;
 				archivo = contDeArchivo.getBytes();
 				Calendar today = Calendar.getInstance();
@@ -237,7 +240,9 @@ public class PanelPrincipal extends JPanel{
 					JOptionPane.showMessageDialog(null, "Documento Creado!", "Nombre Doc.", JOptionPane.INFORMATION_MESSAGE);
 					limpiarListaDocumentos();
 					listarDocumentos();
-				}		
+				}
+				
+				}
 			}
 		});
 		
@@ -255,19 +260,17 @@ public class PanelPrincipal extends JPanel{
 			public void actionPerformed(ActionEvent e) {
 				inicializarMenuEdicion();
 				modoEdicion = true;
-				if (modoEdicion) {
-					String docSeleccionado = (String) listaDocumentos.getSelectedValue();
-					String[] informacionSeparada = docSeleccionado.split("|");
-					String codigo = informacionSeparada[0];
-					cliente.enviarMsg(new Msg ("edicionDoc",codigo));
-					Msg mensajeRecibido = cliente.recibirMsg();
-					docAEditar = (Documento) mensajeRecibido.getObj();
-					String cadenaLegible;
+				String docSeleccionado = (String) listaDocumentos.getSelectedValue();
+				String[] informacionSeparada = docSeleccionado.split("|");
+				String codigo = informacionSeparada[0];
+				cliente.enviarMsg(new Msg ("edicionDoc",codigo));
+				Msg mensajeRecibido = cliente.recibirMsg();
+				docAEditar = (Documento) mensajeRecibido.getObj();
+				String cadenaLegible;
+				System.out.println("datos: "+docAEditar.getCodigo()+"-"+docAEditar.getContenidoArchivo());
+				cadenaLegible = new String(docAEditar.getContenidoArchivo());
+				textArea.setText(cadenaLegible);
 
-						System.out.println("datos: "+docAEditar.getCodigo()+"-"+docAEditar.getContenidoArchivo());
-						cadenaLegible = new String(docAEditar.getContenidoArchivo());
-						textArea.setText(cadenaLegible);
-				}
 			}
 		});
 		
@@ -417,6 +420,15 @@ public class PanelPrincipal extends JPanel{
 		});
 		
 	}
-	
-	
+
+	public boolean salir() {
+		modoEdicion = false;
+		cliente.enviarMsg(new Msg("Salir",usr.getEmail()));
+		Msg msgRecibido = cliente.recibirMsg();
+		if (msgRecibido.getAccion().equals("OK")) {
+			return true;
+		}
+		return false;
+	}
+
 }

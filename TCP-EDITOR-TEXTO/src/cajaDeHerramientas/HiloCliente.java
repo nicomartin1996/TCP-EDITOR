@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class HiloCliente extends Thread{
 
 	private Socket cliente;
 	private int idSesion;
+	private boolean estaConectado;
 	private static ArrayList<Usuario> usuariosConectados = new ArrayList<>();
 	private static ArrayList<Documento> documentosUsuarios = new ArrayList<>();
 
@@ -28,15 +30,17 @@ public class HiloCliente extends Thread{
 		this.idSesion = idSesion;
 		HiloCliente.usuariosConectados = usuariosConectados;
 		documentosUsuarios = docUsuarios;
+		this.estaConectado = true;
 	}
 
 	@Override
 	public void run() {
 
 		try {
-			ObjectInputStream reciboMsg ;
+			ObjectInputStream reciboMsg = null ;
 			ObjectOutputStream salidaACliente = null;
-			while (true) {
+			
+			while (estaConectado) {
 				
 				/* Recibo Consulta de cliente */
 			    reciboMsg = new ObjectInputStream(cliente.getInputStream());
@@ -48,7 +52,10 @@ public class HiloCliente extends Thread{
 				salidaACliente.writeObject(resultado); // Se debe cerrar
 
 			}
-
+			
+			reciboMsg.close();
+			salidaACliente.close();
+			cliente.close();
 		} catch (IOException | ClassNotFoundException ex) {
 			System.out.println("Problemas al querer leer otra petición: " + ex.getMessage());
 		}
@@ -106,14 +113,23 @@ public class HiloCliente extends Thread{
 			String emailUsr = crearDoc.getEmailUsr();
 			String fecha = crearDoc.getFecha();
 			String nombreArchivo = crearDoc.getNombre();
-			byte[] archivo = crearDoc.getArch();
+			byte[] archivoEnBytes = crearDoc.getArch();
 			int inc= autoIncremento("SELECT cod FROM archivos ORDER BY cod DESC", conexion, con);
-			String sql = "INSERT INTO archivos (cod,usrCreador,usrCompartido,fecUltMod,usrUltModifico,archivo,nombreArchivo) VALUES ('"+inc+"','"+emailUsr+"',null,'"+fecha+"','"+emailUsr+"','"+archivo+"','"+nombreArchivo+"' )";
 			try {
-				if ((boolean)conexion.Consulta(sql, con) == true) {
-					System.out.println("Se insertó correctamente!");
-					result = new Msg("OK", null);
-				}
+			PreparedStatement ps = con.prepareStatement("INSERT INTO archivos (cod,usrCreador,usrCompartido,fecUltMod,usrUltModifico,archivo,nombreArchivo) VALUES (?,?,?,?,?,?,?)");
+            ps.setInt(1,inc);
+            ps.setString(2, emailUsr);
+            ps.setString(3, null);
+            ps.setString(4, fecha);
+            ps.setString(5, emailUsr);
+            ps.setBytes(6, archivoEnBytes);
+            ps.setString(7, nombreArchivo);
+            
+			if (ps.executeUpdate() == 1) {
+				documentosUsuarios.add(new Documento(inc,emailUsr,null,nombreArchivo,fecha,emailUsr,archivoEnBytes));
+				System.out.println("Se insertó correctamente!");
+				result = new Msg("OK", null);
+			}
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -194,13 +210,26 @@ public class HiloCliente extends Thread{
 
 		}
 
-		if (consulta.equals("actualizarUsuariosConectados")) {
-			result = new Msg("OK", null);
-
-		}
-
-		if (consulta.equals("4")) {
-
+		if (consulta.equals("Salir")) {
+			
+			estaConectado = false;
+			////////////////Elimino de la lista de usuarios conectados /////////////////
+			String email = (String)msg.getObj();
+			Iterator<Usuario> it = usuariosConectados.iterator();
+			boolean SeSigue = true;
+			while (it.hasNext() && SeSigue) {
+				
+				Usuario aux = it.next();
+				if (aux.getEmail().equals(email)) {
+					usuariosConectados.remove(aux);
+					SeSigue = false;
+					result = new Msg("OK", null);
+				}	
+			}
+			
+			////////////////////// Fin /////////////////////////////////////////////////////
+			
+			
 		}
 		if (consulta.equals("5")) {
 
@@ -219,11 +248,11 @@ public class HiloCliente extends Thread{
 	public static int autoIncremento (String sql,ConexionBDLite conexion,Connection con) {
 		ResultSet res = null;
 		Integer cantidad = 0;
-//		String sql = "SELECT id as Cantidad FROM archivos ORDER BY id DESC";
 		try {
 			res = (ResultSet) conexion.Consulta(sql, con);
-			res.next();
-			cantidad = res.getInt(1);
+			if (res.next()) {
+				cantidad = res.getInt(1);
+			}
 			res.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block

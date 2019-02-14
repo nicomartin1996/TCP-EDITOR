@@ -1,13 +1,14 @@
 package pruebasClases;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.junit.jupiter.api.Test;
 
+import cajaDeHerramientas.Archivos;
+import cajaDeHerramientas.ConexionBDLite;
 import junit.framework.Assert;
 
  class testConvertirByteToString {
@@ -17,35 +18,35 @@ import junit.framework.Assert;
 		 String ss = "hola123123125à@6ð97898123123";
 		 byte[] ee = ss.getBytes();
 		 String res = new String (ee);
-		 System.out.println(res+"-"+ss+"-"+ee);
+//		 System.out.println(res+"-"+ss+"-"+ee);
 		 Assert.assertEquals("hola123123125à@6ð97898123123", res);
 	 }
 	 
 	 @Test
 	 public void testConvertir2() {
-//		 String ss = "hola123123125à@6ð97898123123";
-//		 byte[] ee = ss.getBytes();
-		 String file = "text.txt";
-	        ByteArrayOutputStream bos = null;
-	        try {
-	            File f = new File(file);
-	            FileInputStream fis = new FileInputStream(f);
-	            byte[] buffer = new byte[1024];
-	            bos = new ByteArrayOutputStream();
-	            for (int len; (len = fis.read(buffer)) != -1;) {
-	                bos.write(buffer, 0, len);
-	            }
-	        } catch (FileNotFoundException e) {
-	            System.err.println(e.getMessage());
-	        } catch (IOException e2) {
-	            System.err.println(e2.getMessage());
-	        }
-	        
-	        String sql = "INSERT INTO archivos (id,usrCreador,usrCompartido,fecUltMod,usrUltModifico,archivo) VALUES ('133','nico','aldana','2019-01-31','nico','"+bos+"',''pruebaGrabacion' );";
-	        
-	        
-	        
-	        
+			ConexionBDLite conexion = new ConexionBDLite("NicoBD.db", "engine","configuracion1");
+			Connection con = conexion.getConexion();
+			ResultSet result = null;
+			Archivos arch = new Archivos();
+			String ase = "Este es mi nueva prueba";
+			byte[] archivoBytes = ase.getBytes();
+			try {
+	            PreparedStatement ps = con.prepareStatement("INSERT INTO archivos (cod,usrCreador,usrCompartido,fecUltMod,usrUltModifico,archivo,nombreArchivo) VALUES (?,?,?,?,?,?,?)");
+	            ps.setInt(1,545);
+	            ps.setString(2, null);
+	            ps.setString(3, null);
+	            ps.setString(4, null);
+	            ps.setString(5, null);
+	            ps.setBytes(6, archivoBytes);
+	            ps.setString(7, "Ejemplar");
+	            ps.executeUpdate();
+				String resultado = arch.convertirBytes(12);
+				System.out.println("El resultado es: "+resultado);
+
+			} catch (SQLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}		          
 	 }
 
 }
