@@ -13,6 +13,7 @@ import java.util.Iterator;
 
 import paqueteDeDatos.PaqueteCrearDocumento;
 import paqueteDeDatos.PaqueteInicioSesion;
+import paqueteDeDatos.PaqueteRegistracion;
 
 public class HiloCliente extends Thread{
 
@@ -21,15 +22,17 @@ public class HiloCliente extends Thread{
 	private boolean estaConectado;
 	private static ArrayList<Usuario> usuariosConectados = new ArrayList<>();
 	private static ArrayList<Documento> documentosUsuarios = new ArrayList<>();
+	private static ArrayList<String> usuariosEditando = new ArrayList<>();
 
 	// En el constructor recibe y guarda los parámetros que sean necesarios.
 	// En este caso una lista con toda la conversación y el socket que debe
 	// atender.
-	public HiloCliente(int idSesion, Socket cliente,ArrayList<Usuario> usuariosConectados,ArrayList<Documento> docUsuarios) {
+	public HiloCliente(int idSesion, Socket cliente,ArrayList<Usuario> usuariosConectados,ArrayList<Documento> docUsuarios,ArrayList<String> usuariosEdita) {
 		this.cliente = cliente;
 		this.idSesion = idSesion;
 		HiloCliente.usuariosConectados = usuariosConectados;
 		documentosUsuarios = docUsuarios;
+		usuariosEditando = usuariosEdita;
 		this.estaConectado = true;
 	}
 
@@ -68,21 +71,134 @@ public class HiloCliente extends Thread{
 	 * @return String
 	 */
 
+	
+	
 	public Msg procesarConsulta(Msg msg) {
+		
 		ConexionBDLite conexion = new ConexionBDLite("NicoBD.db", "engine", "configuracion1");
 		Connection con = conexion.getConexion();
 		Msg result = new Msg("NO_OK", null);
 		String consulta = msg.getAccion();
 		
-		if (consulta.equals("edicionDoc")) {
+		if (consulta.equals("fecUltModUsuarios")) {
+			ArrayList<String> fechas = new ArrayList<>();
 			String codigo  = (String) msg.getObj();
 			int cod = Integer.parseInt(codigo);
 			Iterator<Documento> it= documentosUsuarios.iterator();
 			while (it.hasNext()) {
 				Documento aux = it.next();
 				if (aux.getCodigo() == cod) {
+					fechas.add(aux.getFechaMod());
+				}
+			}
+			try {
+				
+				String sql = "SELECT fecUltMod FROM usuarioXArchivo WHERE codArchivo= '"+cod+"'";
+				ResultSet res = (ResultSet) conexion.Consulta(sql, con);
+				while (res.next()) {
+					fechas.add(res.getString("fecUltMod"));
+				}
+				res.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			result = new Msg ("OK",fechas);	
+			
+		}
+		
+		if (consulta.equals("listaIntegranteDoc")) {
+			
+			ArrayList<String> integrantes = new ArrayList<>();
+			String codigo  = (String) msg.getObj();
+			int cod = Integer.parseInt(codigo);
+			Iterator<Documento> it= documentosUsuarios.iterator();
+			while (it.hasNext()) {
+				Documento aux = it.next();
+				if (aux.getCodigo() == cod) {
+					integrantes.add(aux.getEmailCreador());
+				}
+			}
+			try {
+				
+				String sql = "SELECT usrCompartido FROM usuarioXArchivo WHERE codArchivo= '"+cod+"'";
+				ResultSet res = (ResultSet) conexion.Consulta(sql, con);
+				while (res.next()) {
+					integrantes.add(res.getString("usrCompartido"));
+				}
+				res.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			result = new Msg ("OK",integrantes);				
+		}
+		
+		if (consulta.equals("usuarioEditaDoc")) {
+			String codigo  = (String) msg.getObj();
+			int cod = Integer.parseInt(codigo);
+			boolean seSigue = true;
+			Iterator<Documento> it= documentosUsuarios.iterator();
+			while (it.hasNext() && seSigue) {
+				Documento aux = it.next();
+				if (aux.getCodigo() == cod ) {
+					result = new Msg("OK",aux.getUsuarioEdita());
+					seSigue = false;
+				}
+			}	
+		}
+		
+		if (consulta.equals("nombreUsuario")) {
+			String email  = (String) msg.getObj();
+			String sql = "SELECT usuario FROM usuarios WHERE email = '"+email+"'";
+			ResultSet res= null;
+			try {
+				res = (ResultSet) conexion.Consulta(sql, con);
+				if (res.next()) {
+					result = new Msg ("OK",res.getString(1));
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if (consulta.equals("actualizarEstadoDoc")) {
+			String codigo  = (String) msg.getObj();
+			int cod = Integer.parseInt(codigo);
+			Iterator<Documento> it= documentosUsuarios.iterator();
+			int idCodListDoc = 0;
+			while (it.hasNext()) {
+				Documento aux = it.next();
+				if (aux.getCodigo() == cod && aux.DocEnUso() == true) {
+					result = new Msg ("OK",null);
+					aux.setDocEnUso(false);
+					documentosUsuarios.set(idCodListDoc, aux);
+				}
+				idCodListDoc++;
+			}			
+		}
+		if (consulta.equals("edicionDoc")) {
+			String codigoYEmail  = (String) msg.getObj();
+			String[] info = codigoYEmail.split("-");
+			int cod = Integer.parseInt(info[0]);
+			String usuarioEdita = info[1];
+			System.out.println("Mis datos: "+cod+"- "+usuarioEdita);
+			Iterator<Documento> it= documentosUsuarios.iterator();
+			int idCodListDoc = 0;
+			while (it.hasNext()) {
+				Documento aux = it.next();
+				if (aux.getCodigo() == cod && aux.DocEnUso() == false) {
 					result = new Msg ("OK",aux);
-				}	
+					aux.setDocEnUso(true);
+					aux.setUsuarioEdita(usuarioEdita);
+					System.out.println(aux.getUsuarioEdita());
+					documentosUsuarios.set(idCodListDoc, aux);
+				}else if (aux.getCodigo() == cod && aux.DocEnUso()) {
+					result = new Msg("EnUso",aux);
+				}
+				idCodListDoc++;
 			}
 		}
 		if (consulta.equals("listarDoc")) {
@@ -93,8 +209,15 @@ public class HiloCliente extends Thread{
 			infoUnzip[2] = userQuePidePeticion.getUsuario();
 			ArrayList<Documento> documentos = new ArrayList<>();
 			try {			
-				String sql = "SELECT * FROM archivos WHERE usrCreador = '"+infoUnzip[0]+"' OR usrCompartido = '"+infoUnzip[0]+"'";
+				String sql = "SELECT * FROM archivos WHERE usrCreador = '"+infoUnzip[0]+"'";
 				ResultSet res;
+				res = (ResultSet) conexion.Consulta(sql, con);
+				while (res.next()) {
+					Documento doc = new Documento(res.getInt(1),res.getString(2), res.getString(3),  res.getString(7), res.getString(4),res.getString(5), res.getBytes(6));
+					documentos.add(doc);
+				}
+				
+				sql = "SELECT a.* FROM archivos as a INNER JOIN usuarioXArchivo as b ON a.cod = b.codArchivo  WHERE b.usrCompartido = '"+infoUnzip[0]+"'";
 				res = (ResultSet) conexion.Consulta(sql, con);
 				while (res.next()) {
 					Documento doc = new Documento(res.getInt(1),res.getString(2), res.getString(3),  res.getString(7), res.getString(4),res.getString(5), res.getBytes(6));
@@ -164,14 +287,10 @@ public class HiloCliente extends Thread{
 		}
 
 		if (consulta.equals("registrar")) {
-			PaqueteInicioSesion userQuePidePeticion = (PaqueteInicioSesion)msg.getObj();
-			String[] infoUnzip = new String[3];
-			infoUnzip[0] = userQuePidePeticion.getEmail();
-			infoUnzip[1] = userQuePidePeticion.getPass();
-			infoUnzip[2] = userQuePidePeticion.getUsuario();
-
+			PaqueteRegistracion reg = (PaqueteRegistracion)msg.getObj();
+			
 //			System.out.println("1: " + infoUnzip[0] + " 2:" + infoUnzip[1] + " Datos");
-			if (existeCliente(infoUnzip[0], infoUnzip[1], conexion, con) == false) {
+			if (existeCliente(reg, conexion, con) == false) {
 				result = new Msg("OK", null);
 			}
 		}
@@ -223,13 +342,10 @@ public class HiloCliente extends Thread{
 				if (aux.getEmail().equals(email)) {
 					usuariosConectados.remove(aux);
 					SeSigue = false;
-					result = new Msg("OK", null);
 				}	
 			}
-			
-			////////////////////// Fin /////////////////////////////////////////////////////
-			
-			
+			result = new Msg("OK", null);
+			////////////////////// Fin /////////////////////////////////////////////////////	
 		}
 		if (consulta.equals("5")) {
 
@@ -279,10 +395,11 @@ public class HiloCliente extends Thread{
 		return emailAmigos;
 	}
 	
-	public static boolean existeCliente(String email, String password, ConexionBDLite conexion, Connection con) {
+	public static boolean existeCliente(PaqueteRegistracion paq, ConexionBDLite conexion, Connection con) {
+		
 		ResultSet res = null;
 		Integer cantidad = 0;
-		String sqlExiste = "SELECT count(*) as Cantidad FROM usuarios WHERE email = '" + email + "' ";
+		String sqlExiste = "SELECT count(*) as Cantidad FROM usuarios WHERE email = '" + paq.getEmail() + "' ";
 		try {
 			res = (ResultSet) conexion.Consulta(sqlExiste, con);
 			res.next();
@@ -296,7 +413,7 @@ public class HiloCliente extends Thread{
 			return true;
 		} else {
 			if (cantidad <= 0) {
-				sqlExiste = "INSERT INTO usuarios (email,pass) VALUES ('" + email + "','" + password + "')";
+				sqlExiste = "INSERT INTO usuarios (email,pass,usuario,nya,respuestaSeguridad) VALUES ('" + paq.getEmail() + "','" + paq.getPass() + "','" + paq.getUsr() + "','" + paq.getNya() + "','" + paq.getRespuesta()+ "')";
 				System.out.println("sql insert:" + sqlExiste);
 				try {
 					if (((boolean) conexion.Consulta(sqlExiste, con)) == false) {

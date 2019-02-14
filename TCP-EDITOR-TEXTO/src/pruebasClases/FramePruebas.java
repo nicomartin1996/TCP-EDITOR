@@ -14,10 +14,14 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 
 public class FramePruebas extends JFrame {
 
 	private JPanel contentPane;
+	private JTextField txtFIntegrantes;
+	private JTextField txtFFechMod;
+	private JTextField txtFEstadoDoc;
 
 	/**
 	 * Launch the application.
@@ -119,6 +123,29 @@ public class FramePruebas extends JFrame {
 		JLabel label_1 = new JLabel("Lista de amigos");
 		label_1.setBounds(205, 192, 133, 14);
 		contentPane.add(label_1);
+		
+		JLabel lblIntegrantes = new JLabel("Integrantes");
+		lblIntegrantes.setBounds(46, 22, 70, 14);
+		contentPane.add(lblIntegrantes);
+		
+		txtFIntegrantes = new JTextField();
+		txtFIntegrantes.setBounds(205, 19, 86, 20);
+		contentPane.add(txtFIntegrantes);
+		txtFIntegrantes.setColumns(10);
+		
+		JLabel lblFechaDeModificacion = new JLabel("Fecha de modificacion");
+		lblFechaDeModificacion.setBounds(46, 63, 149, 14);
+		contentPane.add(lblFechaDeModificacion);
+		
+		txtFFechMod = new JTextField();
+		txtFFechMod.setColumns(10);
+		txtFFechMod.setBounds(205, 60, 86, 20);
+		contentPane.add(txtFFechMod);
+		
+		txtFEstadoDoc = new JTextField();
+		txtFEstadoDoc.setBounds(0, 541, 784, 20);
+		contentPane.add(txtFEstadoDoc);
+		txtFEstadoDoc.setColumns(10);
 		
 
 	}

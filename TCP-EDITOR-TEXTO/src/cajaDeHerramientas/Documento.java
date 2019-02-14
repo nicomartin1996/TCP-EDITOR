@@ -10,6 +10,8 @@ public class Documento implements Serializable{
 	private String fechaMod;
 	private String usrUltMod;
 	private byte[] contenidoArchivo;
+	private boolean docEnUso;
+	private String usuarioEdita;
 	public Documento(int codigo,String emailCreador, String usrCompartido, String nombreArchivo, String fechaMod,
 			String usrUltMod, byte[] cont) {
 		this.codigoDoc = codigo;
@@ -18,7 +20,10 @@ public class Documento implements Serializable{
 		this.nombreArchivo = nombreArchivo;
 		this.fechaMod = fechaMod;
 		this.usrUltMod = usrUltMod;
-		this.setContenidoArchivo(cont);
+		this.contenidoArchivo = cont;
+		this.docEnUso = false;
+		this.usuarioEdita = null;
+		
 	}
 	public String getEmailCreador() {
 		return emailCreador;
@@ -57,8 +62,19 @@ public class Documento implements Serializable{
 		this.contenidoArchivo = contenidoArchivo;
 	}
 	public int getCodigo() {
-		// TODO Auto-generated method stub
 		return this.codigoDoc;
+	}
+	public boolean DocEnUso() {
+		return docEnUso;
+	}
+	public void setDocEnUso(boolean docEnUso) {
+		this.docEnUso = docEnUso;
+	}
+	public String getUsuarioEdita() {
+		return usuarioEdita;
+	}
+	public void setUsuarioEdita(String usuarioEdita) {
+		this.usuarioEdita = usuarioEdita;
 	}
 	
 

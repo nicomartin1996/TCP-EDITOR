@@ -10,12 +10,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
 
 import cajaDeHerramientas.Cliente;
 import cajaDeHerramientas.Msg;
 import paqueteDeDatos.PaqueteRegistracion;
 
-public class PantallaRegistracion extends JFrame {
+public class PantallaRegistracionBck extends JFrame {
 
 	/**
 	 * 
@@ -30,7 +31,15 @@ public class PantallaRegistracion extends JFrame {
 	private JTextField textFieldEmail;
 	private JTextField txtRespSeg;
 	
-	public PantallaRegistracion(Cliente cli, JPanel contentPane) {
+	public PantallaRegistracionBck() {
+
+		cli = new Cliente("localhost",5000);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 800, 600);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		contentPane.setLayout(null);
 		
 		nya = new JTextField();
 		nya.setBounds(335, 196, 237, 20);

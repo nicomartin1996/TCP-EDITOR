@@ -97,17 +97,14 @@ public class Cliente {
 		}
 	}
 
-	public void desconectarse() {
-		try {
-			inputStream.close();
-			outPutStream.close();
-			client.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.out.println(mensajeError);
-			this.mensajeError = "problemas al cerrar comunicacion. " + e;
-		}
-	}
+//	public void desconectarse() {
+//		cliente.enviarMsg(new Msg("Salir",usu.getEmail()));
+//		Msg msgRecibido = cliente.recibirMsg();
+//		if (msgRecibido.getAccion().equals("OK")) {
+//			return true;
+//		}
+//		return false;
+//	}
 
 	public Usuario getUsu() {
 		return usu;

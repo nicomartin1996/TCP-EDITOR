@@ -1,7 +1,6 @@
 package paqueteDeInterfacesGraficas;
 
 import cajaDeHerramientas.Cliente;
-import cajaDeHerramientas.Usuario;
 
 public class ControlPantallas {
 	private static boolean fun = false;
@@ -24,7 +23,6 @@ public class ControlPantallas {
 		pantallaInicio.setVisible(true);
 
 		while (fun && (pantallaInicio.obtenerAccionLanzada() != "Ingresar")) {
-
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
@@ -34,9 +32,8 @@ public class ControlPantallas {
 
 		}
 		userCli = pantallaInicio.obtenerSocketCliente();
-		Usuario usuario = pantallaInicio.getUsuario();
 		pantallaInicio.dispose();
-		panelPrincipal = new PanelPrincipal(800, 600, userCli, usuario);
+		panelPrincipal = new PanelPrincipal(800, 600, userCli, pantallaInicio.getUsuario());
 		setPantallaPrincipal(new PantallaEditor("Editor En Tiempo Real", panelPrincipal, 800, 600));
 	}
 

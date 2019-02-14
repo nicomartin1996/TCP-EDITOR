@@ -1,5 +1,6 @@
 package paqueteDeInterfacesGraficas;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.ScrollPane;
 import java.awt.TextArea;
@@ -31,7 +32,6 @@ public class PanelPrincipal extends JPanel{
 	private int alto;
 	private static final long serialVersionUID = 1L;
 	private Usuario usr;
-	private String usuarioLocal;
 	private ArrayList<Usuario> listaUsuarios;
 	private ArrayList<Documento> listaDocumento;
 	private JList listAmigosConectados;
@@ -47,25 +47,39 @@ public class PanelPrincipal extends JPanel{
 	private JButton btnModificarDatosPersonales;
 	private TextArea textArea;
 	private JList listaDocumentos;
-	private boolean modoEdicion = false;
+	private boolean modoEdicion;
 	private Documento docAEditar;
+	private String docSeleccionado;
+	private ArrayList<String> usuariosIntegrantesDoc;
+	private String usuarioEdita;
+	private ArrayList<String> fechasUltModUsuariosDoc;
+	private JTextField txtFFechMod;
+	private JTextField txtFIntegrantes;
+	private JLabel lblFechaDeModificacion;
+	private JLabel lblIntegrantes;
+	private JTextField txtFEstadoDoc;
 	
 		
-	public PanelPrincipal(int ancho, int alto, Cliente usu, Usuario usr) {
+	public PanelPrincipal(int ancho, int alto, Cliente cliente, Usuario usr) {
+		modoEdicion = false;
+		usuariosIntegrantesDoc =null;
+		usuarioEdita=null;
+		fechasUltModUsuariosDoc=null;
 		listaUsuarios = new ArrayList<>();
 		this.setAncho(ancho);
 		this.setAlto(alto);
-		this.cliente = usu;
+		this.cliente = cliente;
 		this.setPreferredSize(new Dimension(ancho, alto));
 		this.usr = usr;
 		this.setLayout(null);
 		initComponent();
 		listarUsuariosConectados(); //Inicializo lista de amigos conectados
 		listarDocumentos();
+		this.docSeleccionado = null;
 	}
 	
 	private void listarUsuariosConectados() {
-
+		System.out.println(cliente.obtenerSocketCliente().isClosed()+"-"+cliente.obtenerSocketCliente().getPort());
 		cliente.enviarMsg(new Msg("listaUsuarios",new PaqueteInicioSesion(usr.getEmail(),usr.getUsu(),usr.getPass())));
 		Msg mensajeDesdeSv = cliente.recibirMsg();
 		if (mensajeDesdeSv.getAccion().equals("OK")) {
@@ -97,47 +111,103 @@ public class PanelPrincipal extends JPanel{
 	}
 	
 	public void actualizar() {
+		
 		if (modoEdicion) {
-//			String docSeleccionado = (String) listaDocumentos.getSelectedValue();
-//			String[] informacionSeparada = docSeleccionado.split("|");
-//			String codigo = informacionSeparada[0];
-//			cliente.enviarMsg(new Msg ("edicionDoc",codigo));
-//			Msg mensajeRecibido = cliente.recibirMsg();
-//			docAEditar = (Documento) mensajeRecibido.getObj();
-//			String cadenaLegible;
-//
-//				System.out.println("datos: "+docAEditar.getCodigo()+"-"+docAEditar.getContenidoArchivo());
-//				cadenaLegible = new String(docAEditar.getContenidoArchivo());
-//				textArea.setText(cadenaLegible);
-
 			
-//            InputStream bos = new ByteArrayInputStream(docAEditar.getContenidoArchivo());
-//            try {
-//                int tamanoInput = bos.available();
-//                byte[] datosPDF = new byte[tamanoInput];
-//                bos.read(datosPDF, 0, tamanoInput);
-//                textArea.setText(datosPDF);
-////                OutputStream out = new FileOutputStream("new.txt");
-////				out.write(datosPDF);
-//			} catch (IOException e1) {
-//				// TODO Auto-generated catch block
-//				e1.printStackTrace();
-//			}
+			String info = docSeleccionado+"-"+usr.getEmail();
+			cliente.enviarMsg(new Msg ("edicionDoc",info));
+			Msg mensajeRecibido = cliente.recibirMsg();
+			actualizarDatos(); // Actualizar fecha, integrantes en tiempo real.
+			if (mensajeRecibido.getAccion().equals("OK")) {
+				docAEditar = (Documento) mensajeRecibido.getObj();
+				String cadenaLegible = new String(docAEditar.getContenidoArchivo());
+				textArea.setText(cadenaLegible);
+				modoEdicion = false;
+				habilitarEdicion();
+			}else {
+				System.out.println("El archivo esta siendo usado por otro usuario");
+				
+			}
+			
 		}
+		
+	}
+
+	private void actualizarDatos() {
+		usuariosIntegrantesDoc = listaIntegrantes();
+		fechasUltModUsuariosDoc = fechaUltModificacion();
+		usuarioEdita = obtenerUsuarioEdita();
+		
+		Iterator<String> it = usuariosIntegrantesDoc.iterator();
+		String strr = "";
+		while (it.hasNext()) {
+			strr += it.next();
+			strr += " | ";
+		}
+		txtFIntegrantes.setText(strr);
+		strr="";
+		it = null;
+		it = fechasUltModUsuariosDoc.iterator();
+		while (it.hasNext()) {
+			strr += it.next();
+			strr += " | ";
+		}
+			
+		txtFFechMod.setText(strr);	
+		strr ="";
+		System.out.println(usuarioEdita+" "+usr.getEmail());
+		if (usuarioEdita != null) {
+			if (usuarioEdita.equals(usr.getEmail())) {
+				strr = "Usted está editando este Documento...";
+				txtFEstadoDoc.setText(usuarioEdita+" está editando el documento. Espere a que termine sus modificaciones ...");
+//				txtFEstadoDoc.setBackground(Color.GREEN);
+				txtFEstadoDoc.setForeground(Color.BLACK);
+
+			}else {
+				strr = usuarioEdita+" está editando el documento. Espere a que termine sus modificaciones ...";
+				txtFEstadoDoc.setText(strr);
+//				txtFEstadoDoc.setBackground(Color.YELLOW);
+				txtFEstadoDoc.setForeground(Color.BLACK);
+			}
+		}
+		
+	}
+
+	private ArrayList<String> listaIntegrantes(){
+		
+		cliente.enviarMsg(new Msg("listaIntegranteDoc",docSeleccionado));
+		Msg msg = cliente.recibirMsg();
+		if (msg.getAccion().equals("OK")) {
+			return (ArrayList<String>) msg.getObj();
+		}
+		return null;
+	}
+	
+	private ArrayList<String> fechaUltModificacion(){
+		cliente.enviarMsg(new Msg("fecUltModUsuarios",docSeleccionado));
+		Msg msg = cliente.recibirMsg();
+		if (msg.getAccion().equals("OK")) {
+			return (ArrayList<String>) msg.getObj();
+		}
+		return null;
+	}
+	
+	private String obtenerUsuarioEdita() {
+		cliente.enviarMsg(new Msg("usuarioEditaDoc",docSeleccionado));
+		Msg msg = cliente.recibirMsg();
+		if (msg.getAccion().equals("OK")) {
+			return (String) msg.getObj();
+		}
+		return null;
+	}
+	
+	private void habilitarEdicion() {
+		textArea.setEnabled(true);
 	}
 
 	public void dibujar() {
-
-//		try {
-//			textArea.setText(new String (docAEditar.getContenidoArchivo(),"ISO-8859-1"));
-//		} catch (UnsupportedEncodingException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 	}
 	
-	
-
 	public int getAncho() {
 		return ancho;
 	}
@@ -161,6 +231,28 @@ public class PanelPrincipal extends JPanel{
 		this.modeloListaDefault = new DefaultListModel<>();
 		listAmigosConectados.setModel(modeloListaDefault);
 		this.add(listAmigosConectados);
+	
+		lblIntegrantes = new JLabel("Integrantes");
+		lblIntegrantes.setBounds(46, 22, 70, 14);
+		this.add(lblIntegrantes);
+		
+		txtFIntegrantes = new JTextField();
+		txtFIntegrantes.setBounds(205, 19, 300, 20);
+		this.add(txtFIntegrantes);
+		
+		lblFechaDeModificacion = new JLabel("Fecha de modificacion");
+		lblFechaDeModificacion.setBounds(46, 63, 149, 14);
+		this.add(lblFechaDeModificacion);
+		
+		txtFFechMod = new JTextField();
+		txtFFechMod.setColumns(10);
+		txtFFechMod.setBounds(205, 60, 300, 20);
+		this.add(txtFFechMod);
+		
+		txtFEstadoDoc = new JTextField();
+		txtFEstadoDoc.setBounds(0, 541, 784, 20);
+		this.add(txtFEstadoDoc);
+		txtFEstadoDoc.setColumns(10);
 		
 		JLabel lblListaDeAmigos = new JLabel("Lista de amigos");
 		lblListaDeAmigos.setBounds(10, 129, 133, 14);
@@ -224,23 +316,22 @@ public class PanelPrincipal extends JPanel{
 				String nombreDoc = null;
 				nombreDoc = JOptionPane.showInputDialog("Ingrese el nombre del nuevo documento:");
 				if (nombreDoc != null) {
-					
-				
-				String contDeArchivo ="funciona"; //Se crea el archivo vacio
-				byte[] archivo = null;
-				archivo = contDeArchivo.getBytes();
-				Calendar today = Calendar.getInstance();
-				int mes = today.get(Calendar.MONTH);
-				int anio = today.get(Calendar.YEAR);
-				int dia = today.get(Calendar.DAY_OF_MONTH);
-				String fecha = anio+"-"+mes+"-"+dia;
-				cliente.enviarMsg(new Msg("crearDocumento",new PaqueteCrearDocumento(usr.getEmail(),fecha,nombreDoc,archivo)));
-				Msg mensajeRecibido = cliente.recibirMsg();
-				if (mensajeRecibido.getAccion().equals("OK")) {
-					JOptionPane.showMessageDialog(null, "Documento Creado!", "Nombre Doc.", JOptionPane.INFORMATION_MESSAGE);
-					limpiarListaDocumentos();
-					listarDocumentos();
-				}
+		
+					String contDeArchivo =" "; //Se crea el archivo vacio
+					byte[] archivo = null;
+					archivo = contDeArchivo.getBytes();
+					Calendar today = Calendar.getInstance();
+					int mes = today.get(Calendar.MONTH);
+					int anio = today.get(Calendar.YEAR);
+					int dia = today.get(Calendar.DAY_OF_MONTH);
+					String fecha = anio+"-"+mes+"-"+dia;
+					cliente.enviarMsg(new Msg("crearDocumento",new PaqueteCrearDocumento(usr.getEmail(),fecha,nombreDoc,archivo)));
+					Msg mensajeRecibido = cliente.recibirMsg();
+					if (mensajeRecibido.getAccion().equals("OK")) {
+						JOptionPane.showMessageDialog(null, "Documento Creado!", "Nombre Doc.", JOptionPane.INFORMATION_MESSAGE);
+						limpiarListaDocumentos();
+						listarDocumentos();
+					}
 				
 				}
 			}
@@ -249,8 +340,13 @@ public class PanelPrincipal extends JPanel{
 		
 		btnCerrarDoc.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inicializarMenuPrincipal();
-				modoEdicion = false;
+				
+				cliente.enviarMsg(new Msg ("actualizarEstadoDoc",docSeleccionado));
+				Msg msgRecibido = cliente.recibirMsg();
+				if (msgRecibido.getAccion().equals("OK")) {
+					docSeleccionado = null;
+					inicializarMenuPrincipal();
+				}
 			}
 		});
 		
@@ -260,17 +356,10 @@ public class PanelPrincipal extends JPanel{
 			public void actionPerformed(ActionEvent e) {
 				inicializarMenuEdicion();
 				modoEdicion = true;
-				String docSeleccionado = (String) listaDocumentos.getSelectedValue();
-				String[] informacionSeparada = docSeleccionado.split("|");
-				String codigo = informacionSeparada[0];
-				cliente.enviarMsg(new Msg ("edicionDoc",codigo));
-				Msg mensajeRecibido = cliente.recibirMsg();
-				docAEditar = (Documento) mensajeRecibido.getObj();
-				String cadenaLegible;
-				System.out.println("datos: "+docAEditar.getCodigo()+"-"+docAEditar.getContenidoArchivo());
-				cadenaLegible = new String(docAEditar.getContenidoArchivo());
-				textArea.setText(cadenaLegible);
-
+				
+				String info = (String) listaDocumentos.getSelectedValue();
+				String[] informacionSeparada = info.split("|");
+				docSeleccionado = informacionSeparada[0];
 			}
 		});
 		
@@ -307,7 +396,10 @@ public class PanelPrincipal extends JPanel{
 		listAmigosConectados.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				btnCompartir.setEnabled(true);
+				if (!modoEdicion) {
+					btnCompartir.setEnabled(true);
+				}
+				
 			}
 		});
 		
@@ -315,9 +407,11 @@ public class PanelPrincipal extends JPanel{
 	}
 
 	private void listarDocumentos() {
+		
 		cliente.enviarMsg(new Msg("listarDoc",new PaqueteInicioSesion(usr.getEmail(),usr.getUsu(),usr.getPass())));
 		Msg mensajeDesdeSv = cliente.recibirMsg();
 		if (mensajeDesdeSv.getAccion().equals("OK")) {
+			
 			listaDocumento = (ArrayList<Documento>) mensajeDesdeSv.getObj();
 			Iterator<Documento> it = listaDocumento.iterator();
 			while (it.hasNext()) {
@@ -337,6 +431,11 @@ public class PanelPrincipal extends JPanel{
 		btnCompartir.setVisible(false);
 		textArea.setVisible(false);
 		btnCerrarDoc.setVisible(false);
+		lblIntegrantes.setVisible(false);
+		lblFechaDeModificacion.setVisible(false);
+		txtFFechMod.setVisible(false);
+		txtFIntegrantes.setVisible(false);
+		txtFEstadoDoc.setVisible(false);
 		
 		btnCrearDoc.setVisible(true);
 		btnEdicion.setVisible(true);
@@ -352,15 +451,23 @@ public class PanelPrincipal extends JPanel{
 		btnCompartir.setVisible(true);
 		textArea.setVisible(true);
 		btnCerrarDoc.setVisible(true);
+		lblIntegrantes.setVisible(true);
+		lblFechaDeModificacion.setVisible(true);
+		txtFFechMod.setVisible(true);
+		txtFIntegrantes.setVisible(true);
+		txtFEstadoDoc.setVisible(true);
 		
 		btnCrearDoc.setVisible(false);
 		btnEdicion.setVisible(false);
 		btnModificarDatosPersonales.setVisible(false);
 		btnEliminarArchivo.setVisible(false);
 		
-		btnCompartir.setEnabled(false);	
+		txtFEstadoDoc.setEnabled(false);
+		txtFFechMod.setEnabled(false);
+		txtFIntegrantes.setEnabled(false);
+		btnCompartir.setEnabled(false);
+		textArea.setEnabled(false);
 	}
-	
 	
 	private void inicializarMenuDatosPersonales() {
 		updateUI();
@@ -368,11 +475,14 @@ public class PanelPrincipal extends JPanel{
 		btnEdicion.setVisible(false);
 		btnModificarDatosPersonales.setVisible(false);
 		btnEliminarArchivo.setVisible(false);
+		txtFEstadoDoc.setVisible(false);
 		btnCompartir.setVisible(false);
 		textArea.setVisible(false);
 		btnCerrarDoc.setVisible(false);
-		
-		
+		lblIntegrantes.setVisible(false);
+		lblFechaDeModificacion.setVisible(false);
+		txtFFechMod.setVisible(false);
+		txtFIntegrantes.setVisible(false);
 
 		JLabel lblUsuario = new JLabel("Usuario");
 		lblUsuario.setBounds(200, 154, 133, 14);

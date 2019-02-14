@@ -14,6 +14,7 @@ public class Servidor {
 	private static ServerSocket serverSocket;
 	private static ArrayList<Usuario> usuariosConectados = new ArrayList<>();
 	private static ArrayList<Documento> documentosDeUsuarios = new ArrayList<>();
+	private static ArrayList<String> usuariosEditando = new ArrayList<>();
 	/**
 	 * @param args the command line arguments
 	 */
@@ -33,7 +34,7 @@ public class Servidor {
 				System.out.println("Servidor esperando clientes!");
 				clientSocket = serverSocket.accept();
 				System.out.println("conexion aceptada!");
-				HiloCliente hiloCliente = new HiloCliente(idSesion, clientSocket,usuariosConectados,documentosDeUsuarios);
+				HiloCliente hiloCliente = new HiloCliente(idSesion, clientSocket,usuariosConectados,documentosDeUsuarios,usuariosEditando);
 				hiloCliente.start();
 				idSesion++;
 
