@@ -14,10 +14,13 @@ import java.util.Iterator;
 import paqueteDeDatos.PaqueteAgregarAmigo;
 import paqueteDeDatos.PaqueteCompartirArch;
 import paqueteDeDatos.PaqueteCrearDocumento;
+import paqueteDeDatos.PaqueteDatosPersonalesAct;
+import paqueteDeDatos.PaqueteEliminarAmigo;
 import paqueteDeDatos.PaqueteEliminarArch;
 import paqueteDeDatos.PaqueteGuardarDocumento;
 import paqueteDeDatos.PaqueteInicioSesion;
 import paqueteDeDatos.PaqueteRegistracion;
+import paqueteDeInterfacesGraficas.PaqueteRecuperarContrasena;
 
 public class HiloCliente extends Thread{
 
@@ -84,6 +87,22 @@ public class HiloCliente extends Thread{
 		Msg result = new Msg("NO_OK", null);
 		String consulta = msg.getAccion();
 		
+		if (consulta.equals("existeArch")) {
+			try {
+				String sql = "SELECT 1 from archivos where cod = '"+(String)msg.getObj()+"'";
+				ResultSet res;
+				res = (ResultSet) conexion.Consulta(sql, con);
+				if (res.next()) {
+					if (res.getInt(1) > 0) {
+						result = new Msg ("OK",null);
+					}
+				}
+				res.close();
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+			
+		}
 		if (consulta.equals("fecUltModUsuarios")) {
 			ArrayList<String> fechas = new ArrayList<>();
 			String codigo  = (String) msg.getObj();
@@ -163,24 +182,43 @@ public class HiloCliente extends Thread{
 				if (res.next()) {
 					result = new Msg ("OK",res.getString(1));
 				}
+				res.close();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
+		if (consulta.equals("creadorArch")) {
+			try {
+				String sql = "SELECT usrCreador from archivos where cod = '"+(String)msg.getObj()+"'";
+				ResultSet res;
+				res = (ResultSet) conexion.Consulta(sql, con);
+				if (res.next()) {
+					result = new Msg ("OK",res.getString(1));
+				}
+				res.close();
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}
 		if (consulta.equals("eliminarArch")) {
 			try {
 				
 				PaqueteEliminarArch pck = (PaqueteEliminarArch) msg.getObj();
-				String sql = "DELETE FROM archivos WHERE cod = '"+pck.getCodArch()+"' AND usrCreador = '"+pck.getEmail()+"'";
-				if (((boolean) conexion.Consulta(sql, con)) == false) {
-					sql = "DELETE FROM usuarioXArchivo WHERE cod = '"+pck.getCodArch()+"' AND usrCreador = '"+pck.getEmail()+"'";
-					if (((boolean) conexion.Consulta(sql, con)) == false) {
-						
+				
+				if (puedeEliminar(pck.getCodArch(),pck.getEmail(),conexion,con)) {
+					
+					String sql = "DELETE FROM archivos WHERE cod = '"+pck.getCodArch()+"' AND usrCreador = '"+pck.getEmail()+"'";
+//					System.out.println(sql);
+					if (((boolean) conexion.Consulta(sql, con)) == true) {
+						sql = "DELETE FROM usuarioXArchivo WHERE codArchivo = '"+pck.getCodArch()+"'";
+						conexion.Consulta(sql, con);
+						removerArchDeLista(pck.getCodArch());
+						result = new Msg("OK",null);
 					}
 				}
-				
+	
 			} catch (Exception e) {
 				// TODO: handle exception
 			}
@@ -193,7 +231,7 @@ public class HiloCliente extends Thread{
 				
 				PaqueteAgregarAmigo emailAmigo = (PaqueteAgregarAmigo) msg.getObj();
 				String sql ="INSERT INTO amigos (usuario,usuarioAmigo) values ('"+emailAmigo.getEmail()+"','"+emailAmigo.getEmailAmigo()+"')";
-				if (((boolean) conexion.Consulta(sql, con)) == false) {
+				if (((boolean) conexion.Consulta(sql, con)) == true) {
 					System.out.println("se inserto correctamente");
 				}
 				result = new Msg ("OK",null);
@@ -205,12 +243,13 @@ public class HiloCliente extends Thread{
 		}
 		
 		if (consulta.equals("compartirArch")) {
+			
 			PaqueteCompartirArch packComp = (PaqueteCompartirArch)	msg.getObj();
 			try {
 				String usr = packComp.getUsrCompartido();
 				int cod = packComp.getCodArch();
-				String sql = "INSERT INTO usuarioXArchivo (codArchivo,usrCompartido) VALUES ( '"+packComp.getCodArch()+"' ,'"+packComp.getUsrCompartido()+"')";
-				if (((boolean) conexion.Consulta(sql, con)) == false) {
+				String sql = "INSERT INTO usuarioXArchivo (codArchivo,usrCompartido,fecUltMod) VALUES ( '"+packComp.getCodArch()+"' ,'"+packComp.getUsrCompartido()+"',null)";
+				if (((boolean) conexion.Consulta(sql, con)) == true) {
 					System.out.println("se inserto correctamente");
 				}
 				result = new Msg ("OK",null);
@@ -218,6 +257,7 @@ public class HiloCliente extends Thread{
 				System.out.println("No pudo insertar el usuarioxarc");
 			}
 		}
+		
 		if (consulta.equals("guardarDocumento")) {
 			
 			boolean esUsrCreador = false;
@@ -235,7 +275,7 @@ public class HiloCliente extends Thread{
 					result = new Msg ("OK",null);
 					aux.setDocEnUso(false);
 					aux.setContenidoArchivo(archEnBytes);
-					
+					aux.setUsuarioEdita("");
 					if (aux.getEmailCreador().equals(email)) {
 						aux.setFechaMod(fecha);
 						esUsrCreador = true;
@@ -286,6 +326,33 @@ public class HiloCliente extends Thread{
 			}
 			
 		}
+		
+		if (consulta.equals("actualizarDatosPersonales")) {
+			PaqueteDatosPersonalesAct pck = (PaqueteDatosPersonalesAct) msg.getObj();
+			if (pasoSeguridad(pck.getEmail(),pck.getRespuesta(),conexion,con)) {
+				//Respuesta ha contestado correctamente!
+				try {
+					String set = "";
+					if (pck.getPasswMod() != null && !pck.getPasswMod().equals("") ) {
+						set +="pass = '"+pck.getPasswMod()+"'";
+					}				
+					if (pck.getUsrMod()!= null && !pck.getUsrMod().equals("")) {
+						if (!set.equals("")) {
+							set+=",";
+						}
+						set +="usuario = '"+pck.getUsrMod()+"'";
+					}
+					String sql="UPDATE usuarios SET "+set+" WHERE email = '"+pck.getEmail()+"';";
+					System.out.println(sql);
+					if (((boolean) conexion.Consulta(sql, con)) == true) {
+						System.out.println("Se actualizo correctamente");
+						result = new Msg("OK", null);
+					}
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+			}
+		}
 		if (consulta.equals("edicionDoc")) {
 			String codigoYEmail  = (String) msg.getObj();
 			String[] info = codigoYEmail.split("-");
@@ -297,10 +364,11 @@ public class HiloCliente extends Thread{
 			while (it.hasNext()) {
 				Documento aux = it.next();
 				if (aux.getCodigo() == cod && aux.DocEnUso() == false) {
-					result = new Msg ("OK",aux);
+					
 					aux.setDocEnUso(true);
 					aux.setUsuarioEdita(usuarioEdita);
 					System.out.println(aux.getUsuarioEdita());
+					result = new Msg ("OK",aux);
 					documentosUsuarios.set(idCodListDoc, aux);
 				}else if (aux.getCodigo() == cod && aux.DocEnUso()) {
 					result = new Msg("EnUso",aux);
@@ -394,7 +462,19 @@ public class HiloCliente extends Thread{
 			result = new Msg("OK", usuariosAmigos);
 
 		}
-
+		
+		if (consulta.equals("eliminarAmigo")) {
+			
+			PaqueteEliminarAmigo pck = (PaqueteEliminarAmigo)msg.getObj();
+			String sql = "DELETE FROM amigos WHERE usuario = '"+pck.getUsr()+"' AND usuarioAmigo = '"+pck.getUsrAEliminar()+"'";
+			try {
+				if (((boolean) conexion.Consulta(sql, con)) == true) {
+					result = new Msg ("OK",null);
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}
 		if (consulta.equals("registrar")) {
 			PaqueteRegistracion reg = (PaqueteRegistracion)msg.getObj();
 			
@@ -437,24 +517,58 @@ public class HiloCliente extends Thread{
 			}
 
 		}
-
-		if (consulta.equals("Salir")) {
+		
+		if (consulta.equals("recuperarContraseña")) {
 			
-			estaConectado = false;
-			////////////////Elimino de la lista de usuarios conectados /////////////////
-			String email = (String)msg.getObj();
-			Iterator<Usuario> it = usuariosConectados.iterator();
-			boolean SeSigue = true;
-			while (it.hasNext() && SeSigue) {
-				
-				Usuario aux = it.next();
-				if (aux.getEmail().equals(email)) {
-					usuariosConectados.remove(aux);
-					SeSigue = false;
-				}	
+			PaqueteRecuperarContrasena pck = (PaqueteRecuperarContrasena) msg.getObj();
+			if (pasoSeguridad(pck.getEmail(),pck.getRespu(),conexion,con)) {
+				//Respuesta ha contestado correctamente!
+				try {
+
+					String sql="UPDATE usuarios SET pass = '"+pck.getPass()+"' WHERE email = '"+pck.getEmail()+"';";
+					System.out.println(sql);
+					if (((boolean) conexion.Consulta(sql, con)) == true) {
+						System.out.println("Se actualizo correctamente");
+						result = new Msg("OK", null);
+					}
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
 			}
-			result = new Msg("OK", null);
-			////////////////////// Fin /////////////////////////////////////////////////////	
+			
+		}
+		if (consulta.equals("Salir")) {
+			String email = (String)msg.getObj();
+			boolean estaEditando = false;
+			Iterator<Documento> itDoc= documentosUsuarios.iterator();
+			boolean seSigue = true;
+			
+			while (itDoc.hasNext() && seSigue) {
+				Documento aux = itDoc.next();
+				if (aux.getUsuarioEdita().equals(email)) {
+					estaEditando = true;
+					seSigue = false;
+				}
+			}
+			
+			if (estaEditando == false) {
+				//No esta editando
+				seSigue = true;
+				estaConectado = false;
+				////////////////Elimino de la lista de usuarios conectados /////////////////
+				Iterator<Usuario> it = usuariosConectados.iterator();
+				while (it.hasNext() && seSigue) {
+					
+					Usuario aux = it.next();
+					if (aux.getEmail().equals(email)) {
+						usuariosConectados.remove(aux);
+						seSigue = false;
+					}	
+				}
+				result = new Msg("OK", null);
+				////////////////////// Fin /////////////////////////////////////////////////////
+			}
+	
 		}
 		if (consulta.equals("5")) {
 
@@ -470,6 +584,54 @@ public class HiloCliente extends Thread{
 		return result;
 	}
 	
+	private boolean pasoSeguridad(String email, String respuesta,ConexionBDLite conexion,Connection con) {
+		int cantidad = 0;
+		String sql = "SELECT count(*) as cantidad FROM usuarios WHERE email = '"+email+"' AND respuestaSeguridad = '"+respuesta+"';";
+		System.out.println(sql);
+		try {
+			ResultSet res = null;
+			res = (ResultSet) conexion.Consulta(sql, con);
+			if (res.next()) {
+				cantidad = res.getInt(1);
+			}
+			res.close();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return cantidad > 0 ? true : false;
+	}
+
+	private Documento removerArchDeLista(int codArch) {
+		boolean seSigue = true;
+		Documento aux = null;
+		Iterator<Documento> it= documentosUsuarios.iterator();
+		while (it.hasNext() && seSigue) {
+			aux = it.next();
+			if (aux.getCodigo() == codArch ) {
+				documentosUsuarios.remove(aux);
+				seSigue = false;
+			}
+		}
+		return aux;
+	}
+
+	private boolean puedeEliminar(int cod, String usr,ConexionBDLite conexion,Connection con) {
+		
+		int cantidad = 0;
+		String sql = "SELECT count(*) as cantidad FROM archivos WHERE cod = '"+cod+"' AND usrCreador = '"+usr+"'";
+		try {
+			ResultSet res = null;
+			res = (ResultSet) conexion.Consulta(sql, con);
+			if (res.next()) {
+				cantidad = res.getInt(1);
+			}
+			res.close();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return cantidad > 0 ? true : false;
+	}
+
 	public static int autoIncremento (String sql,ConexionBDLite conexion,Connection con) {
 		ResultSet res = null;
 		Integer cantidad = 0;

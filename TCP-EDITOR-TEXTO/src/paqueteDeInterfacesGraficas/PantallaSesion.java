@@ -36,10 +36,17 @@ public class PantallaSesion extends JFrame {
 	private JButton btnIngresar;
 	private JTextField nyaReg;
 	private JTextField usuarioReg;
-	private JTextField estadoReg;
+//	private JTextField estadoReg;
 	private JPasswordField passwordReg;
 	private JTextField textFieldEmailReg;
 	private JTextField txtRespSegReg;
+	private JButton btnRecPass;
+	private JTextField txtRespSegRec;
+	private JPasswordField passwordRec;
+	private JButton btnVolverRec;
+	private JButton btnEnviarRec;
+	private JLabel lblContrasenaRec;
+	private JLabel lblRespSegRec;
 
 	public String obtenerAccionLanzada() {
 		return actionListenerActivada;
@@ -113,7 +120,7 @@ public class PantallaSesion extends JFrame {
 
 			}
 		});
-		btnIngresar.setBounds(281, 368, 89, 23);
+		btnIngresar.setBounds(259, 368, 112, 23);
 		pantallaSesion.add(btnIngresar);
 
 		btnRegistrar = new JButton("Registrarse");
@@ -126,12 +133,13 @@ public class PantallaSesion extends JFrame {
 				lblUsuario.setVisible(false);
 				email.setVisible(false);
 				password.setVisible(false);
+				btnRecPass.setVisible(false);
 				
 				PantallaRegistracion();
 			}
 		});
 		
-		btnRegistrar.setBounds(421, 368, 112, 23);
+		btnRegistrar.setBounds(398, 368, 112, 23);
 		pantallaSesion.add(btnRegistrar);
 
 		lblUsuario = new JLabel("Email");
@@ -153,8 +161,17 @@ public class PantallaSesion extends JFrame {
 		estado.setColumns(10);
 	
 		//TEMPORAL
-		email.setText("nico");
+		email.setText("Nico");
 		password.setText("123");
+		
+		btnRecPass = new JButton("Has olvidado tu contrase\u00F1a?");
+		btnRecPass.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				pantallaRecuContrasena();
+			}
+		});
+		btnRecPass.setBounds(259, 402, 251, 23);
+		pantallaSesion.add(btnRecPass);
 	}
 
 	protected String obtenerNombreUsuario(String emailUsuario) {
@@ -169,57 +186,144 @@ public class PantallaSesion extends JFrame {
 		return usr;
 	}
 	
+	public void pantallaRecuContrasena() {
+		pantallaSesion.updateUI();
+		email.setVisible(false);
+		password.setVisible(false);
+		btnIngresar.setVisible(false);
+		btnRecPass.setVisible(false);
+		btnRegistrar.setVisible(false);
+		lblUsuario.setVisible(false);
+		lblPass.setVisible(false);
+		
+		lblContrasenaRec = new JLabel("Ingrese la nueva clave");
+		lblContrasenaRec.setBounds(198-50, 263+30, 130, 14);
+		pantallaSesion.add(lblContrasenaRec);
+		passwordRec = new JPasswordField();
+		passwordRec.setEchoChar('*');
+		passwordRec.setBounds(335-30, 260+30, 237, 20);
+		pantallaSesion.add(passwordRec);
+		
+		lblRespSegRec = new JLabel("Tu mascota favorita?");
+		lblRespSegRec.setBounds(198-50, 291+30, 130, 14);
+		pantallaSesion.add(lblRespSegRec);
+		txtRespSegRec = new JTextField();
+		txtRespSegRec.setColumns(10);
+		txtRespSegRec.setBounds(335-30, 291+30, 237, 20);
+		pantallaSesion.add(txtRespSegRec);
+		
+		btnEnviarRec = new JButton("Enviar");
+		btnEnviarRec.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				PaqueteRecuperarContrasena pck = new PaqueteRecuperarContrasena(email.getText(),passwordRec.getText(),txtRespSegRec.getText());
+				cli.enviarMsg(new Msg("recuperarContraseña",pck));
+			    Msg msgRecibido = cli.recibirMsg();  
+				if (msgRecibido.getAccion().equals("OK")) {
+					estado.setText("La contraseña ha sido modificada correctamente!");
+					estado.setBackground(Color.GREEN);
+				}else {
+					estado.setText("El email o la respuesta no fueron correctas!");
+					estado.setBackground(Color.RED);
+			    }
+//				volver();
+
+			}
+		});
+		btnEnviarRec.setBounds(292-30, 346+30, 105, 23);
+		pantallaSesion.add(btnEnviarRec);
+		btnVolverRec = new JButton("Volver");
+		btnVolverRec.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				pantallaSesion.updateUI();
+				btnVolverRec.setVisible(false);
+				btnEnviarRec.setVisible(false);
+				lblContrasenaRec.setVisible(false);
+				passwordRec.setVisible(false);
+				lblRespSegRec.setVisible(false);
+				txtRespSegRec.setVisible(false);
+				
+				email.setVisible(true);
+				password.setVisible(true);
+				btnIngresar.setVisible(true);
+				btnRecPass.setVisible(true);
+				btnRegistrar.setVisible(true);
+				lblUsuario.setVisible(true);
+				lblPass.setVisible(true);
+			}
+		});
+		btnVolverRec.setBounds(496-30, 346+30, 89, 23);
+		pantallaSesion.add(btnVolverRec);
+		
+		
+	}
+	
+	protected void volver() {
+		btnVolverRec.setVisible(false);
+		btnEnviarRec.setVisible(false);
+		lblContrasenaRec.setVisible(false);
+		lblRespSegRec.setVisible(false);
+		txtRespSegRec.setVisible(false);
+
+		btnRegistrar.setVisible(true);
+		btnIngresar.setVisible(true);
+		lblPass.setVisible(true);
+		lblUsuario.setVisible(true);
+		email.setVisible(true);
+		password.setVisible(true);
+	}
+
 	public void PantallaRegistracion() {
 		pantallaSesion.updateUI();
 		nyaReg = new JTextField();
-		nyaReg.setBounds(335, 196, 237, 20);
+		nyaReg.setBounds(335-30, 196+30, 237, 20);
 		pantallaSesion.add(nyaReg);
 		nyaReg.setColumns(10);
 		
 		usuarioReg = new JTextField();
-		usuarioReg.setBounds(335, 227, 237, 20);
+		usuarioReg.setBounds(335-30, 227+30, 237, 20);
 		pantallaSesion.add(usuarioReg);
 		usuarioReg.setColumns(10);
 
 		JLabel lblNombreUsuarioReg = new JLabel("Nombre Usuario");
-		lblNombreUsuarioReg.setBounds(198, 231, 117, 14);
+		lblNombreUsuarioReg.setBounds(198-30, 231+30, 117, 14);
 		pantallaSesion.add(lblNombreUsuarioReg);
 		
 		JLabel lblContrasenaReg = new JLabel("Contrase\u00F1a");
-		lblContrasenaReg.setBounds(198, 263, 117, 14);
+		lblContrasenaReg.setBounds(198-30, 263+30, 117, 14);
 		pantallaSesion.add(lblContrasenaReg);
 		
 		JLabel lblNombreYApellidoReg = new JLabel("Nombre y Apellido");
-		lblNombreYApellidoReg.setBounds(198, 199, 117, 14);
+		lblNombreYApellidoReg.setBounds(198-30, 199+30, 117, 14);
 		pantallaSesion.add(lblNombreYApellidoReg);
 		
-		estadoReg = new JTextField();
-		estadoReg.setEditable(false);
-		estadoReg.setBounds(0, 541, 784, 20);
-		pantallaSesion.add(estadoReg);
-		estadoReg.setColumns(10);
+//		estadoReg = new JTextField();
+//		estadoReg.setEditable(false);
+//		estadoReg.setBounds(0, 541, 784, 20);
+//		pantallaSesion.add(estadoReg);
+//		estadoReg.setColumns(10);
 		
 		passwordReg = new JPasswordField();
 		passwordReg.setEchoChar('*');
-		passwordReg.setBounds(335, 260, 237, 20);
+		passwordReg.setBounds(335-30, 260+30, 237, 20);
 		pantallaSesion.add(passwordReg);
 		
 		textFieldEmailReg = new JTextField();
 		textFieldEmailReg.setColumns(10);
-		textFieldEmailReg.setBounds(335, 165, 237, 20);
+		textFieldEmailReg.setBounds(335-30, 165+30, 237, 20);
 		pantallaSesion.add(textFieldEmailReg);
 		
 		JLabel lblEmailReg = new JLabel("Email");
-		lblEmailReg.setBounds(198, 168, 117, 14);
+		lblEmailReg.setBounds(198-30, 168+30, 117, 14);
 		pantallaSesion.add(lblEmailReg);
 		
 		JLabel lblRespSegReg = new JLabel("Tu mascota favorita?");
-		lblRespSegReg.setBounds(198, 291, 117, 14);
+		lblRespSegReg.setBounds(198-30, 291+30, 125, 14);
 		pantallaSesion.add(lblRespSegReg);
 		
 		txtRespSegReg = new JTextField();
 		txtRespSegReg.setColumns(10);
-		txtRespSegReg.setBounds(335, 291, 237, 20);
+		txtRespSegReg.setBounds(335-30, 291+30, 237, 20);
 		pantallaSesion.add(txtRespSegReg);
 		JButton btnRegistrarseReg = new JButton("Registrarse");
 		btnRegistrarseReg.addActionListener(new ActionListener() {
@@ -240,7 +344,7 @@ public class PantallaSesion extends JFrame {
 
 			}
 		});
-		btnRegistrarseReg.setBounds(292, 346, 105, 23);
+		btnRegistrarseReg.setBounds(292-30, 346+30, 105, 23);
 		pantallaSesion.add(btnRegistrarseReg);
 		JButton btnVolverReg = new JButton("Volver");
 		btnVolverReg.addActionListener(new ActionListener() {
@@ -254,21 +358,23 @@ public class PantallaSesion extends JFrame {
 				textFieldEmailReg.setVisible(false);
 				passwordReg.setVisible(false);
 				lblContrasenaReg.setVisible(false);
-				estadoReg.setVisible(false);
+//				estadoReg.setVisible(false);
 				nyaReg.setVisible(false);
 				usuarioReg.setVisible(false);
 				btnVolverReg.setVisible(false);
 				btnRegistrarseReg.setVisible(false);
 				
+				
 				btnRegistrar.setVisible(true);
 				btnIngresar.setVisible(true);
+				btnRecPass.setVisible(true);
 				lblPass.setVisible(true);
 				lblUsuario.setVisible(true);
 				email.setVisible(true);
 				password.setVisible(true);
 			}
 		});
-		btnVolverReg.setBounds(496, 346, 89, 23);
+		btnVolverReg.setBounds(496-30, 346+30, 89, 23);
 		pantallaSesion.add(btnVolverReg);
 		
 

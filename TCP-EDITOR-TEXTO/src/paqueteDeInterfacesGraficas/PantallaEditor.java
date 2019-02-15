@@ -44,6 +44,8 @@ public class PantallaEditor extends JFrame {
 		if (salir == JOptionPane.YES_OPTION) {
 			if (panel.salir()) {
 				System.exit(0);	
+			}else {
+				JOptionPane.showConfirmDialog(this, "Debe cerrar el documento antes de salir!.","Advertencia",JOptionPane.WARNING_MESSAGE);
 			}
 		}
 	}

@@ -30,6 +30,7 @@ public class ConexionBDLite {
 		Statement state= conexion.createStatement();
 		if (!consulta.contains("SELECT")) {
 			 state.executeUpdate(consulta);
+//			 System.out.println("Resultado; "+res);
 			 return true;
 		}
 		return state.executeQuery(consulta);

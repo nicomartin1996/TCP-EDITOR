@@ -30,7 +30,6 @@ public class ControlPantallas {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
 		}
 		userCli = pantallaInicio.obtenerSocketCliente();
 		Usuario usu = pantallaInicio.getUsuario();
@@ -57,7 +56,7 @@ public class ControlPantallas {
 
 			try {
 				actualizar();
-				dibujar();
+//				dibujar();
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block

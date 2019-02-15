@@ -22,7 +22,7 @@ public class Documento implements Serializable{
 		this.usrUltMod = usrUltMod;
 		this.contenidoArchivo = cont;
 		this.docEnUso = false;
-		this.usuarioEdita = null;
+		this.usuarioEdita ="";
 		
 	}
 	public String getEmailCreador() {
