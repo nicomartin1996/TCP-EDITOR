@@ -11,7 +11,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import paqueteDeDatos.PaqueteAgregarAmigo;
+import paqueteDeDatos.PaqueteCompartirArch;
 import paqueteDeDatos.PaqueteCrearDocumento;
+import paqueteDeDatos.PaqueteEliminarArch;
+import paqueteDeDatos.PaqueteGuardarDocumento;
 import paqueteDeDatos.PaqueteInicioSesion;
 import paqueteDeDatos.PaqueteRegistracion;
 
@@ -164,9 +168,65 @@ public class HiloCliente extends Thread{
 				e.printStackTrace();
 			}
 		}
-		if (consulta.equals("actualizarEstadoDoc")) {
-			String codigo  = (String) msg.getObj();
-			int cod = Integer.parseInt(codigo);
+		
+		if (consulta.equals("eliminarArch")) {
+			try {
+				
+				PaqueteEliminarArch pck = (PaqueteEliminarArch) msg.getObj();
+				String sql = "DELETE FROM archivos WHERE cod = '"+pck.getCodArch()+"' AND usrCreador = '"+pck.getEmail()+"'";
+				if (((boolean) conexion.Consulta(sql, con)) == false) {
+					sql = "DELETE FROM usuarioXArchivo WHERE cod = '"+pck.getCodArch()+"' AND usrCreador = '"+pck.getEmail()+"'";
+					if (((boolean) conexion.Consulta(sql, con)) == false) {
+						
+					}
+				}
+				
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+			
+			
+		}
+		
+		if (consulta.equals("agregarAmigo")) {
+			try {
+				
+				PaqueteAgregarAmigo emailAmigo = (PaqueteAgregarAmigo) msg.getObj();
+				String sql ="INSERT INTO amigos (usuario,usuarioAmigo) values ('"+emailAmigo.getEmail()+"','"+emailAmigo.getEmailAmigo()+"')";
+				if (((boolean) conexion.Consulta(sql, con)) == false) {
+					System.out.println("se inserto correctamente");
+				}
+				result = new Msg ("OK",null);
+				
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+			
+		}
+		
+		if (consulta.equals("compartirArch")) {
+			PaqueteCompartirArch packComp = (PaqueteCompartirArch)	msg.getObj();
+			try {
+				String usr = packComp.getUsrCompartido();
+				int cod = packComp.getCodArch();
+				String sql = "INSERT INTO usuarioXArchivo (codArchivo,usrCompartido) VALUES ( '"+packComp.getCodArch()+"' ,'"+packComp.getUsrCompartido()+"')";
+				if (((boolean) conexion.Consulta(sql, con)) == false) {
+					System.out.println("se inserto correctamente");
+				}
+				result = new Msg ("OK",null);
+			} catch (Exception e) {
+				System.out.println("No pudo insertar el usuarioxarc");
+			}
+		}
+		if (consulta.equals("guardarDocumento")) {
+			
+			boolean esUsrCreador = false;
+			PaqueteGuardarDocumento datosAGuardar = (PaqueteGuardarDocumento)msg.getObj();
+			int cod = datosAGuardar.getCodigoArch();
+			String email = datosAGuardar.getEmailUsr();
+			String fecha = datosAGuardar.getFecMod();
+			byte[] archEnBytes = datosAGuardar.getArchMod();
+			/// Actualizo lista de Documentos del Server.
 			Iterator<Documento> it= documentosUsuarios.iterator();
 			int idCodListDoc = 0;
 			while (it.hasNext()) {
@@ -174,10 +234,57 @@ public class HiloCliente extends Thread{
 				if (aux.getCodigo() == cod && aux.DocEnUso() == true) {
 					result = new Msg ("OK",null);
 					aux.setDocEnUso(false);
+					aux.setContenidoArchivo(archEnBytes);
+					
+					if (aux.getEmailCreador().equals(email)) {
+						aux.setFechaMod(fecha);
+						esUsrCreador = true;
+					}
 					documentosUsuarios.set(idCodListDoc, aux);
 				}
 				idCodListDoc++;
-			}			
+			}
+			
+			////// Actualizo Tablas.
+			
+			try {
+				
+	            PreparedStatement ps;
+	            String sql = null;
+				if (esUsrCreador) {
+					
+					sql ="UPDATE archivos SET fecUltMod = ?,archivo=? WHERE  cod =?";
+					ps = con.prepareStatement(sql);
+		            ps.setString(1,fecha);
+		            ps.setBytes(2, archEnBytes);
+		            ps.setInt(3, cod);
+		            
+					if (ps.executeUpdate() == 1) {
+						result = new Msg("OK", null);
+					}
+				}else{
+					
+					sql ="UPDATE archivos SET archivo=? WHERE  cod =?";
+					ps = con.prepareStatement(sql);
+		            ps.setBytes(1, archEnBytes);
+		            ps.setInt(2, cod);
+		            
+					if (ps.executeUpdate() == 1) {
+						
+						sql ="UPDATE usuarioXArchivo SET fecUltMod = '"+fecha+"' WHERE  codArchivo = '"+cod+"' AND usrCompartido = '"+email+"' ";
+						if (((boolean) conexion.Consulta(sql, con)) == true) {
+							System.out.println("Se actualizo correctamente");
+							result = new Msg("OK", null);
+						}
+						
+					}	
+				}
+	
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		if (consulta.equals("edicionDoc")) {
 			String codigoYEmail  = (String) msg.getObj();
@@ -219,7 +326,9 @@ public class HiloCliente extends Thread{
 				
 				sql = "SELECT a.* FROM archivos as a INNER JOIN usuarioXArchivo as b ON a.cod = b.codArchivo  WHERE b.usrCompartido = '"+infoUnzip[0]+"'";
 				res = (ResultSet) conexion.Consulta(sql, con);
+				int cant =0;
 				while (res.next()) {
+					cant++;
 					Documento doc = new Documento(res.getInt(1),res.getString(2), res.getString(3),  res.getString(7), res.getString(4),res.getString(5), res.getBytes(6));
 					documentos.add(doc);
 				}

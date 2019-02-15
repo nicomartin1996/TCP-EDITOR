@@ -89,7 +89,8 @@ public class PantallaSesion extends JFrame {
 						estado.setText("Debe ingresar el email y contraseña para poder ingresar al editor.");
 						estado.setBackground(Color.RED);
 					} else {
-							String emailUsuario  = email.getText();
+							String emailUsuario = "";
+							emailUsuario  = email.getText();
 							String nombreUsuario = obtenerNombreUsuario(emailUsuario);
 							String pass = password.getText();
 							PaqueteInicioSesion packInicioSesion = new PaqueteInicioSesion(emailUsuario,nombreUsuario, pass);

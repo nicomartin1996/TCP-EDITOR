@@ -1,6 +1,7 @@
 package paqueteDeInterfacesGraficas;
 
 import cajaDeHerramientas.Cliente;
+import cajaDeHerramientas.Usuario;
 
 public class ControlPantallas {
 	private static boolean fun = false;
@@ -32,8 +33,9 @@ public class ControlPantallas {
 
 		}
 		userCli = pantallaInicio.obtenerSocketCliente();
+		Usuario usu = pantallaInicio.getUsuario();
 		pantallaInicio.dispose();
-		panelPrincipal = new PanelPrincipal(800, 600, userCli, pantallaInicio.getUsuario());
+		panelPrincipal = new PanelPrincipal(800, 600, userCli, usu);
 		setPantallaPrincipal(new PantallaEditor("Editor En Tiempo Real", panelPrincipal, 800, 600));
 	}
 
