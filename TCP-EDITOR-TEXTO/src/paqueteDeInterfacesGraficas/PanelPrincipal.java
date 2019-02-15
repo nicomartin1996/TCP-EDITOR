@@ -69,8 +69,6 @@ public class PanelPrincipal extends JPanel{
 	private JButton btnAgregarAmigo;
 	private boolean controlEliminacionArch;
 	private JButton btnRefrescarDoc;
-	private boolean edicionHabilidado;
-	private boolean esSuTurno;
 	private JButton btnEliminarAmigo;
 	
 		
@@ -295,7 +293,6 @@ public class PanelPrincipal extends JPanel{
 	
 	private void habilitarEdicion() {
 		textArea.setEnabled(true);
-		edicionHabilidado = true;
 	}
 
 	/**
