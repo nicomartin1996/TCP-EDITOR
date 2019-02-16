@@ -34,8 +34,9 @@ public class ControlPantallas {
 		userCli = pantallaInicio.obtenerSocketCliente();
 		Usuario usu = pantallaInicio.getUsuario();
 		pantallaInicio.dispose();
-		panelPrincipal = new PanelPrincipal(800, 600, userCli, usu);
-		setPantallaPrincipal(new PantallaEditor("Editor En Tiempo Real", panelPrincipal, 800, 600));
+		panelPrincipal = new PanelPrincipal(800, 600, userCli, usu,"/imagenes/fondo2.jpg");
+		PantallaEditor editorTexto = new PantallaEditor("Editor de texto", panelPrincipal, 800, 600);
+		setPantallaPrincipal(editorTexto);
 	}
 
 	public static void cerrarEditor() {

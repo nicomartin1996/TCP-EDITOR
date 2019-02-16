@@ -2,9 +2,13 @@ package paqueteDeInterfacesGraficas;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -17,7 +21,9 @@ import cajaDeHerramientas.Cliente;
 import cajaDeHerramientas.Msg;
 import cajaDeHerramientas.Usuario;
 import paqueteDeDatos.PaqueteInicioSesion;
+import paqueteDeDatos.PaqueteRecuperarContrasena;
 import paqueteDeDatos.PaqueteRegistracion;
+import pruebasClases.FramePruebas;
 
 public class PantallaSesion extends JFrame {
 
@@ -29,24 +35,23 @@ public class PantallaSesion extends JFrame {
 	private static Cliente cli = new Cliente("localhost", 5000);
 	public static String actionListenerActivada;
 	private Usuario usr;
-	private JTextField tfnombreUsuario;
 	private JLabel lblUsuario;
 	private JLabel lblPass;
 	private JButton btnRegistrar;
 	private JButton btnIngresar;
 	private JTextField nyaReg;
 	private JTextField usuarioReg;
-//	private JTextField estadoReg;
 	private JPasswordField passwordReg;
 	private JTextField textFieldEmailReg;
 	private JTextField txtRespSegReg;
-	private JButton btnRecPass;
 	private JTextField txtRespSegRec;
 	private JPasswordField passwordRec;
 	private JButton btnVolverRec;
 	private JButton btnEnviarRec;
 	private JLabel lblContrasenaRec;
 	private JLabel lblRespSegRec;
+	private ImageIcon fondo;
+	private JLabel lblRe;
 
 	public String obtenerAccionLanzada() {
 		return actionListenerActivada;
@@ -62,12 +67,13 @@ public class PantallaSesion extends JFrame {
 
 	public PantallaSesion() {
 		
+		setIconImage(Toolkit.getDefaultToolkit().getImage(FramePruebas.class.getResource("/imagenes/icono.jpg")));
 		actionListenerActivada = null;
 		setTitle("Iniciar sesión");
 		setResizable(false);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 800, 600);
-		pantallaSesion = new JPanel();
+		pantallaSesion = new PanelConFondo("/imagenes/fondo2.jpg");
 		pantallaSesion.setPreferredSize(new Dimension(800, 600));
 		pantallaSesion.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(pantallaSesion);
@@ -133,7 +139,7 @@ public class PantallaSesion extends JFrame {
 				lblUsuario.setVisible(false);
 				email.setVisible(false);
 				password.setVisible(false);
-				btnRecPass.setVisible(false);
+				lblRe.setVisible(false);
 				
 				PantallaRegistracion();
 			}
@@ -144,34 +150,37 @@ public class PantallaSesion extends JFrame {
 
 		lblUsuario = new JLabel("Email");
 		lblUsuario.setBounds(245, 280, 46, 14);
+		lblUsuario.setForeground(Color.BLACK);
 		pantallaSesion.add(lblUsuario);
-
+		
+		
 		lblPass = new JLabel("Contrase\u00F1a");
 		lblPass.setBounds(245, 311, 76, 14);
+		lblPass.setForeground(Color.BLACK);
 		pantallaSesion.add(lblPass);
-
+		
 		password = new JPasswordField();
 		password.setBounds(320, 308, 164, 20);
 		pantallaSesion.add(password);
-
+		
+		lblRe = new JLabel ("Recuperar contraseña");
+		lblRe.setBounds(320,  330, 164, 20);
+		lblRe.setForeground(Color.BLUE);
+		pantallaSesion.add(lblRe);
+		
+		lblRe.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				pantallaRecuContrasena();
+			}
+		});
+		
+		
 		estado = new JTextField();
 		estado.setEditable(false);
 		estado.setBounds(0, 551, 794, 20);
 		pantallaSesion.add(estado);
 		estado.setColumns(10);
-	
-		//TEMPORAL
-		email.setText("Nico");
-		password.setText("123");
-		
-		btnRecPass = new JButton("Has olvidado tu contrase\u00F1a?");
-		btnRecPass.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				pantallaRecuContrasena();
-			}
-		});
-		btnRecPass.setBounds(259, 402, 251, 23);
-		pantallaSesion.add(btnRecPass);
 	}
 
 	protected String obtenerNombreUsuario(String emailUsuario) {
@@ -191,7 +200,7 @@ public class PantallaSesion extends JFrame {
 		email.setVisible(false);
 		password.setVisible(false);
 		btnIngresar.setVisible(false);
-		btnRecPass.setVisible(false);
+		lblRe.setVisible(false);
 		btnRegistrar.setVisible(false);
 		lblUsuario.setVisible(false);
 		lblPass.setVisible(false);
@@ -226,7 +235,7 @@ public class PantallaSesion extends JFrame {
 					estado.setText("El email o la respuesta no fueron correctas!");
 					estado.setBackground(Color.RED);
 			    }
-//				volver();
+
 
 			}
 		});
@@ -246,7 +255,7 @@ public class PantallaSesion extends JFrame {
 				email.setVisible(true);
 				password.setVisible(true);
 				btnIngresar.setVisible(true);
-				btnRecPass.setVisible(true);
+				lblRe.setVisible(true);
 				btnRegistrar.setVisible(true);
 				lblUsuario.setVisible(true);
 				lblPass.setVisible(true);
@@ -297,12 +306,6 @@ public class PantallaSesion extends JFrame {
 		lblNombreYApellidoReg.setBounds(198-30, 199+30, 117, 14);
 		pantallaSesion.add(lblNombreYApellidoReg);
 		
-//		estadoReg = new JTextField();
-//		estadoReg.setEditable(false);
-//		estadoReg.setBounds(0, 541, 784, 20);
-//		pantallaSesion.add(estadoReg);
-//		estadoReg.setColumns(10);
-		
 		passwordReg = new JPasswordField();
 		passwordReg.setEchoChar('*');
 		passwordReg.setBounds(335-30, 260+30, 237, 20);
@@ -338,7 +341,7 @@ public class PantallaSesion extends JFrame {
 					estado.setText("Te haz registrado correctamente!");
 					estado.setBackground(Color.GREEN);
 				}else {
-					estado.setText("El nombre de usuario Ya existe!");
+					estado.setText("El email de usuario ya existe!");
 					estado.setBackground(Color.RED);
 			    }
 
@@ -367,7 +370,7 @@ public class PantallaSesion extends JFrame {
 				
 				btnRegistrar.setVisible(true);
 				btnIngresar.setVisible(true);
-				btnRecPass.setVisible(true);
+				lblRe.setVisible(true);
 				lblPass.setVisible(true);
 				lblUsuario.setVisible(true);
 				email.setVisible(true);

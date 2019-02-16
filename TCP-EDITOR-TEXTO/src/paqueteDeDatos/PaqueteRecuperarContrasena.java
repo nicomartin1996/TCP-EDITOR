@@ -1,4 +1,4 @@
-package paqueteDeInterfacesGraficas;
+package paqueteDeDatos;
 
 import java.io.Serializable;
 

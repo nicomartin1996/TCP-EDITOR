@@ -1,13 +1,17 @@
 package pruebasClases;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.ScrollPane;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -15,6 +19,10 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
 
 public class FramePruebas extends JFrame {
 
@@ -43,9 +51,11 @@ public class FramePruebas extends JFrame {
 	 * Create the frame.
 	 */
 	public FramePruebas() {
+		setIconImage(Toolkit.getDefaultToolkit().getImage(FramePruebas.class.getResource("/imagenes/icono.jpg")));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 800, 600);
 		contentPane = new JPanel();
+		contentPane.setBorder(new LineBorder(new Color(0, 0, 0)));
 //		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPane);
 		contentPane.setLayout(null);
@@ -68,18 +78,40 @@ public class FramePruebas extends JFrame {
 		contentPane.add(btnRefrescar);
 		
 		JLabel lblListaDeAmigos = new JLabel("Lista de amigos");
-		lblListaDeAmigos.setBounds(10, 129, 133, 14);
+		lblListaDeAmigos.setFont(new Font("Palatino Linotype", Font.PLAIN, 15));
+		lblListaDeAmigos.setBounds(205, 229, 116, 38);
+//		ImageIcon iconoEmail = new ImageIcon(FramePruebas.class.getResource("/imagenes/emailSesion.jpg"));
+//		Icon icono = new ImageIcon(iconoEmail.getImage().getScaledInstance(lblListaDeAmigos.getWidth(), lblListaDeAmigos.getHeight(), Image.SCALE_DEFAULT));
+//		lblListaDeAmigos.setIcon(icono);
+
 		contentPane.add(lblListaDeAmigos);
-		
+		this.repaint();
 		JLabel arbolDocumental = new JLabel("Documentos");
 		arbolDocumental.setBounds(672, 129, 102, 14);
 		contentPane.add(arbolDocumental);
 		
 		JLabel lblEditor = new JLabel("Editor");
+		lblEditor.setForeground(Color.BLUE);
+		lblEditor.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+				
+			}
+		});
 		lblEditor.setBounds(465, 129, 46, 14);
+		lblEditor.setBorder(new LineBorder(new Color(0, 0, 0)));
 		contentPane.add(lblEditor);
 		
 		JButton btnEdicion = new JButton("Modo edici\u00F3n");
+		btnEdicion.addAncestorListener(new AncestorListener() {
+			public void ancestorAdded(AncestorEvent event) {
+			}
+			public void ancestorMoved(AncestorEvent event) {
+			}
+			public void ancestorRemoved(AncestorEvent event) {
+			}
+		});
 		btnEdicion.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			}
@@ -96,10 +128,16 @@ public class FramePruebas extends JFrame {
 		contentPane.add(btnCompartir);
 		
 		JButton btnCrearDoc = new JButton("Crear documento");
+		btnCrearDoc.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		btnCrearDoc.setSelectedIcon(new ImageIcon(FramePruebas.class.getResource("/imagenes/candadoSesion.jpg")));
 		btnCrearDoc.setBounds(363, 233, 148, 23);
 		contentPane.add(btnCrearDoc);
 		
 		JList listaDocumentos = new JList();
+		listaDocumentos.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		listaDocumentos.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -114,6 +152,7 @@ public class FramePruebas extends JFrame {
 		
 		JButton eliminarArchivo = new JButton("Eliminar Archivo");
 		eliminarArchivo.setBounds(363, 279, 148, 23);
+		eliminarArchivo.setBorder(new LineBorder(new Color(0, 0, 0)));
 		contentPane.add(eliminarArchivo);
 		
 		JLabel label = new JLabel("Lista de amigos");

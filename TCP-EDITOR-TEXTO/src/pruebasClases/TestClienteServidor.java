@@ -2,18 +2,20 @@ package pruebasClases;
 
 import org.junit.jupiter.api.Test;
 
-class TestClienteServidor {
+import cajaDeHerramientas.Cliente;
+import cajaDeHerramientas.Msg;
+import junit.framework.Assert;
 
+class TestClienteServidor {
+	Cliente usu = new Cliente("localhost", 5000);
 	@Test
 	public void testComClienteSv() {
-//		Usuario usu = new Usuario ("192.168.1.51", 5000); //Creo el usuario - Cliente
-//		String obj = "Estoy enviando mi peticion";
-////		Objeto objAEnviar = new Objeto(obj);
-//		usu.enviarMsg(objAEnviar);
-//		System.out.println("Pase la barrear");
-////		Objeto objFeedback= usu.recibirMsg();
-//		String objEnString = (String) objFeedback.getObj();
-//		Assert.assertEquals("OK", objEnString);
+		
+		String obj = "Estoy enviando mi peticion";
+		usu.enviarMsg(new Msg("enviandoprueba", obj));
+		Msg msg = usu.recibirMsg();
+		String objEnString = (String) msg.getObj();
+		Assert.assertEquals("OK", objEnString);
 	}
 
 }

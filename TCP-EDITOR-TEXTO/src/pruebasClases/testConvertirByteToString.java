@@ -7,7 +7,6 @@ import java.sql.SQLException;
 
 import org.junit.jupiter.api.Test;
 
-import cajaDeHerramientas.Archivos;
 import cajaDeHerramientas.ConexionBDLite;
 import junit.framework.Assert;
 

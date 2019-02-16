@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import cajaDeHerramientas.ConexionBDLite;
 
-class TestPantallaEditor {
+class TestSQL {
 
 //	@Test
 //	void testDibujarComponente() {

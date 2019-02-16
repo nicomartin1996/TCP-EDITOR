@@ -19,8 +19,8 @@ import paqueteDeDatos.PaqueteEliminarAmigo;
 import paqueteDeDatos.PaqueteEliminarArch;
 import paqueteDeDatos.PaqueteGuardarDocumento;
 import paqueteDeDatos.PaqueteInicioSesion;
+import paqueteDeDatos.PaqueteRecuperarContrasena;
 import paqueteDeDatos.PaqueteRegistracion;
-import paqueteDeInterfacesGraficas.PaqueteRecuperarContrasena;
 
 public class HiloCliente extends Thread{
 
@@ -227,15 +227,16 @@ public class HiloCliente extends Thread{
 		}
 		
 		if (consulta.equals("agregarAmigo")) {
+			PaqueteAgregarAmigo emailAmigo = (PaqueteAgregarAmigo) msg.getObj();
 			try {
-				
-				PaqueteAgregarAmigo emailAmigo = (PaqueteAgregarAmigo) msg.getObj();
-				String sql ="INSERT INTO amigos (usuario,usuarioAmigo) values ('"+emailAmigo.getEmail()+"','"+emailAmigo.getEmailAmigo()+"')";
-				if (((boolean) conexion.Consulta(sql, con)) == true) {
-					System.out.println("se inserto correctamente");
+				//Debe existir el usuario en el Sistema para agregarlo como amigo
+				if (existeCliente(new PaqueteRegistracion(null, null, null, null, emailAmigo.getEmailAmigo()),conexion,con) == true) {
+					String sql ="INSERT INTO amigos (usuario,usuarioAmigo) values ('"+emailAmigo.getEmail()+"','"+emailAmigo.getEmailAmigo()+"')";
+					if (((boolean) conexion.Consulta(sql, con)) == true) {
+//						System.out.println("se inserto correctamente");
+					}
+					result = new Msg ("OK",null);	
 				}
-				result = new Msg ("OK",null);
-				
 			} catch (Exception e) {
 				// TODO: handle exception
 			}
@@ -250,7 +251,7 @@ public class HiloCliente extends Thread{
 				int cod = packComp.getCodArch();
 				String sql = "INSERT INTO usuarioXArchivo (codArchivo,usrCompartido,fecUltMod) VALUES ( '"+packComp.getCodArch()+"' ,'"+packComp.getUsrCompartido()+"',null)";
 				if (((boolean) conexion.Consulta(sql, con)) == true) {
-					System.out.println("se inserto correctamente");
+//					System.out.println("se inserto correctamente");
 				}
 				result = new Msg ("OK",null);
 			} catch (Exception e) {
@@ -313,7 +314,7 @@ public class HiloCliente extends Thread{
 						
 						sql ="UPDATE usuarioXArchivo SET fecUltMod = '"+fecha+"' WHERE  codArchivo = '"+cod+"' AND usrCompartido = '"+email+"' ";
 						if (((boolean) conexion.Consulta(sql, con)) == true) {
-							System.out.println("Se actualizo correctamente");
+//							System.out.println("Se actualizo correctamente");
 							result = new Msg("OK", null);
 						}
 						
@@ -343,9 +344,9 @@ public class HiloCliente extends Thread{
 						set +="usuario = '"+pck.getUsrMod()+"'";
 					}
 					String sql="UPDATE usuarios SET "+set+" WHERE email = '"+pck.getEmail()+"';";
-					System.out.println(sql);
+//					System.out.println(sql);
 					if (((boolean) conexion.Consulta(sql, con)) == true) {
-						System.out.println("Se actualizo correctamente");
+//						System.out.println("Se actualizo correctamente");
 						result = new Msg("OK", null);
 					}
 				} catch (Exception e) {
@@ -358,7 +359,7 @@ public class HiloCliente extends Thread{
 			String[] info = codigoYEmail.split("-");
 			int cod = Integer.parseInt(info[0]);
 			String usuarioEdita = info[1];
-			System.out.println("Mis datos: "+cod+"- "+usuarioEdita);
+//			System.out.println("Mis datos: "+cod+"- "+usuarioEdita);
 			Iterator<Documento> it= documentosUsuarios.iterator();
 			int idCodListDoc = 0;
 			while (it.hasNext()) {
@@ -367,7 +368,7 @@ public class HiloCliente extends Thread{
 					
 					aux.setDocEnUso(true);
 					aux.setUsuarioEdita(usuarioEdita);
-					System.out.println(aux.getUsuarioEdita());
+//					System.out.println(aux.getUsuarioEdita());
 					result = new Msg ("OK",aux);
 					documentosUsuarios.set(idCodListDoc, aux);
 				}else if (aux.getCodigo() == cod && aux.DocEnUso()) {
@@ -427,7 +428,7 @@ public class HiloCliente extends Thread{
             
 			if (ps.executeUpdate() == 1) {
 				documentosUsuarios.add(new Documento(inc,emailUsr,null,nombreArchivo,fecha,emailUsr,archivoEnBytes));
-				System.out.println("Se insertó correctamente!");
+//				System.out.println("Se insertó correctamente!");
 				result = new Msg("OK", null);
 			}
 			} catch (SQLException e) {
@@ -467,6 +468,7 @@ public class HiloCliente extends Thread{
 			
 			PaqueteEliminarAmigo pck = (PaqueteEliminarAmigo)msg.getObj();
 			String sql = "DELETE FROM amigos WHERE usuario = '"+pck.getUsr()+"' AND usuarioAmigo = '"+pck.getUsrAEliminar()+"'";
+//			System.out.println(sql);
 			try {
 				if (((boolean) conexion.Consulta(sql, con)) == true) {
 					result = new Msg ("OK",null);
@@ -477,10 +479,18 @@ public class HiloCliente extends Thread{
 		}
 		if (consulta.equals("registrar")) {
 			PaqueteRegistracion reg = (PaqueteRegistracion)msg.getObj();
-			
-//			System.out.println("1: " + infoUnzip[0] + " 2:" + infoUnzip[1] + " Datos");
 			if (existeCliente(reg, conexion, con) == false) {
 				result = new Msg("OK", null);
+				String sqlExiste = "INSERT INTO usuarios (email,pass,usuario,nya,respuestaSeguridad) VALUES ('" + reg.getEmail() + "','" + reg.getPass() + "','" + reg.getUsr() + "','" + reg.getNya() + "','" + reg.getRespuesta()+ "')";
+//				System.out.println("sql insert:" + sqlExiste);
+				try {
+					if (((boolean) conexion.Consulta(sqlExiste, con)) == false) {
+//						System.out.println("se inserto correctamente");
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				
 			}
 		}
 
@@ -526,9 +536,9 @@ public class HiloCliente extends Thread{
 				try {
 
 					String sql="UPDATE usuarios SET pass = '"+pck.getPass()+"' WHERE email = '"+pck.getEmail()+"';";
-					System.out.println(sql);
+//					System.out.println(sql);
 					if (((boolean) conexion.Consulta(sql, con)) == true) {
-						System.out.println("Se actualizo correctamente");
+//						System.out.println("Se actualizo correctamente");
 						result = new Msg("OK", null);
 					}
 				} catch (Exception e) {
@@ -587,7 +597,7 @@ public class HiloCliente extends Thread{
 	private boolean pasoSeguridad(String email, String respuesta,ConexionBDLite conexion,Connection con) {
 		int cantidad = 0;
 		String sql = "SELECT count(*) as cantidad FROM usuarios WHERE email = '"+email+"' AND respuestaSeguridad = '"+respuesta+"';";
-		System.out.println(sql);
+//		System.out.println(sql);
 		try {
 			ResultSet res = null;
 			res = (ResultSet) conexion.Consulta(sql, con);
@@ -670,7 +680,8 @@ public class HiloCliente extends Thread{
 		
 		ResultSet res = null;
 		Integer cantidad = 0;
-		String sqlExiste = "SELECT count(*) as Cantidad FROM usuarios WHERE email = '" + paq.getEmail() + "' ";
+		String sqlExiste = "SELECT count(*) as Cantidad FROM usuarios WHERE email = '" + paq.getEmail() + "'";
+//		System.out.println("hola estoy verificando"+sqlExiste);
 		try {
 			res = (ResultSet) conexion.Consulta(sqlExiste, con);
 			res.next();
@@ -682,20 +693,7 @@ public class HiloCliente extends Thread{
 
 		if (cantidad > 0) {
 			return true;
-		} else {
-			if (cantidad <= 0) {
-				sqlExiste = "INSERT INTO usuarios (email,pass,usuario,nya,respuestaSeguridad) VALUES ('" + paq.getEmail() + "','" + paq.getPass() + "','" + paq.getUsr() + "','" + paq.getNya() + "','" + paq.getRespuesta()+ "')";
-				System.out.println("sql insert:" + sqlExiste);
-				try {
-					if (((boolean) conexion.Consulta(sqlExiste, con)) == false) {
-						System.out.println("se inserto correctamente");
-					}
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
 		}
-		
 		return false;
 	}
 }

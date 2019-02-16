@@ -1,4 +1,4 @@
-package cajaDeHerramientas;
+package pruebasClases;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import cajaDeHerramientas.ConexionBDLite;
 
 public class Archivos {
 	private ConexionBDLite conexion;

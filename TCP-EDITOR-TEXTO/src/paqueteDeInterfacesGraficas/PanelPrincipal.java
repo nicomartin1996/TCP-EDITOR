@@ -2,6 +2,7 @@ package paqueteDeInterfacesGraficas;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.ScrollPane;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
@@ -14,6 +15,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -70,9 +72,10 @@ public class PanelPrincipal extends JPanel{
 	private boolean controlEliminacionArch;
 	private JButton btnRefrescarDoc;
 	private JButton btnEliminarAmigo;
-	
+	private ImageIcon fondo;
 		
-	public PanelPrincipal(int ancho, int alto, Cliente cliente, Usuario usr) {
+	public PanelPrincipal(int ancho, int alto, Cliente cliente, Usuario usr,String rutaImagen) {
+		fondo = new ImageIcon(getClass().getResource(rutaImagen));
 		modoEdicion = false;
 		usuariosIntegrantesDoc =null;
 		usuarioEdita=null;
@@ -91,9 +94,17 @@ public class PanelPrincipal extends JPanel{
 		controlEliminacionArch = false;
 	}
 	
+	//Metodo para colocar un fondo en el JPanel
+	protected void paintComponent(Graphics g) {
+		Dimension d = getSize();
+		g.drawImage(fondo.getImage(), 0, 0, d.width, d.height, null);
+		this.setOpaque(false);
+		super.paintComponent(g);	
+	}
+	
 	//////// METODOS PARA CONTROL DE LISTAS /////////////////////
 	private void listarUsuariosConectados() {
-		System.out.println(cliente.obtenerSocketCliente().isClosed()+"-"+cliente.obtenerSocketCliente().getPort());
+//		System.out.println(cliente.obtenerSocketCliente().isClosed()+"-"+cliente.obtenerSocketCliente().getPort());
 		cliente.enviarMsg(new Msg("listaUsuarios",new PaqueteInicioSesion(usr.getEmail(),usr.getUsu(),usr.getPass())));
 		Msg mensajeDesdeSv = cliente.recibirMsg();
 		if (mensajeDesdeSv.getAccion().equals("OK")) {
@@ -149,7 +160,7 @@ public class PanelPrincipal extends JPanel{
 	
 	//////////// METODO PARA FUNCIONALIDAD EDICION ///////////////
 	public void actualizar() {
-		controlarExistenciaArch(controlEliminacionArch);
+		controlarExistenciaArch();
 		
 		if (modoEdicion) {
 			
@@ -168,10 +179,13 @@ public class PanelPrincipal extends JPanel{
 					textArea.setText(cadenaLegible);
 					modoEdicion = false;
 					habilitarEdicion();
+					btnCerrarDoc.setEnabled(true);
 					if (!consultarUsrCreadorArch().equals(usr.getEmail())) {
 						//No soy el creador del archivo seleccionado. Controlo la eliminacion del mismo
 						controlEliminacionArch = true;
 					}	
+				}else {
+					btnCerrarDoc.setEnabled(false);
 				}
 			}else {
 				modoEdicion = false;
@@ -186,7 +200,7 @@ public class PanelPrincipal extends JPanel{
 	////////////// FIN //////////////////////////////////////////
 	
 
-	private synchronized void controlarExistenciaArch(boolean controlEliminacionArch2) {
+	private synchronized void controlarExistenciaArch() {
 		if (controlEliminacionArch) {
 			//Controlo si el archivo que estoy editando si es eliminado por el propietario (El documento es compartido)
 			cliente.enviarMsg(new Msg ("existeArch",docSeleccionado));
@@ -247,7 +261,7 @@ public class PanelPrincipal extends JPanel{
 		txtFFechMod.setText(strr);
 		txtFFechMod.setBackground(Color.lightGray);
 		strr ="";
-		System.out.println(usuarioEdita+" "+usr.getEmail());
+//		System.out.println(usuarioEdita+" "+usr.getEmail());
 		if (usuarioEdita != null) {
 			Color col = Color.GREEN;
 			if (usuarioEdita.equals(usr.getEmail())) {
@@ -357,7 +371,7 @@ public class PanelPrincipal extends JPanel{
 		this.add(txtFFechMod);
 		
 		txtFEstadoDoc = new JTextField();
-		txtFEstadoDoc.setBounds(0, 541, 784, 20);
+		txtFEstadoDoc.setBounds(0, 541, 800, 20);
 		this.add(txtFEstadoDoc);
 		txtFEstadoDoc.setColumns(10);
 		
@@ -435,6 +449,8 @@ public class PanelPrincipal extends JPanel{
 						JOptionPane.showMessageDialog(null, "Amigo agregado!", "Agregar Amigos", JOptionPane.INFORMATION_MESSAGE);
 						limpiarListaAmigos();
 						listarUsuariosConectados();
+					}else {
+						JOptionPane.showMessageDialog(null, "el Usuario ingresado no existe en el Sistema", "Agregar Amigos", JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			}
@@ -453,6 +469,7 @@ public class PanelPrincipal extends JPanel{
 				listarDocumentos();
 			}
 		});
+		
 		btnCrearDoc.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String nombreDoc = null;
@@ -476,13 +493,12 @@ public class PanelPrincipal extends JPanel{
 			}
 		});
 		
-		
 		btnCerrarDoc.addActionListener(new ActionListener() {
 			public synchronized void actionPerformed(ActionEvent e) {
 				
 				Date laFechadeHoy = new Date();
 				String fecha = new SimpleDateFormat("dd-MM-yyyy").format(laFechadeHoy);
-				System.out.println(fecha);
+//				System.out.println(fecha);
 				byte[] archMod = textArea.getText().getBytes();
 				controlEliminacionArch = false;
 				cliente.enviarMsg(new Msg ("guardarDocumento",new PaqueteGuardarDocumento(fecha, usr.getEmail(), archMod, Integer.parseInt(docSeleccionado))));
@@ -520,7 +536,10 @@ public class PanelPrincipal extends JPanel{
 						limpiarListaAmigos();
 						listarUsuariosConectados();
 						JOptionPane.showMessageDialog(null, "Has eliminado a "+usrAEliminar+"", "Eliminar amigos", JOptionPane.INFORMATION_MESSAGE);
+						btnEliminarAmigo.setEnabled(false);
 					}
+				}else {
+//					System.out.println("no ok");
 				}
 
 			}
@@ -528,11 +547,9 @@ public class PanelPrincipal extends JPanel{
 		
 		btnModificarDatosPersonales.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inicializarMenuDatosPersonales();
-				
+				inicializarMenuDatosPersonales();	
 			}
 		});
-		
 		
 		btnCompartir.addActionListener(new ActionListener() {
 			public synchronized void actionPerformed(ActionEvent e) {
@@ -550,7 +567,7 @@ public class PanelPrincipal extends JPanel{
 					cliente.enviarMsg(new Msg ("compartirArch",new PaqueteCompartirArch(emailAmigo, codArch)));
 					Msg msg = cliente.recibirMsg();
 					if (msg.getAccion().equals("OK")) {
-						JOptionPane.showMessageDialog(null, "Has compartido el Documento "+infoDoc[1]+" con "+emailAmigo+"!", "Operación Satisfactoria", JOptionPane.YES_OPTION);
+						JOptionPane.showMessageDialog(null, "Has compartido el Documento "+infoDoc[1]+" con "+emailAmigo+"!", "Operación Satisfactoria", JOptionPane.INFORMATION_MESSAGE);
 						actualizarDatos();
 					}
 					
@@ -570,18 +587,19 @@ public class PanelPrincipal extends JPanel{
 					String [] infoDoc = valorDoc.split("-");
 					int codArch = Integer.parseInt(infoDoc[0]);
 					PaqueteEliminarArch pack = new PaqueteEliminarArch(usr.getEmail(), codArch);
-					System.out.println("Codigo: "+codArch);
+//					System.out.println("Codigo: "+codArch);
 					cliente.enviarMsg(new Msg ("eliminarArch",pack));
 					Msg msg= cliente.recibirMsg();
 					if (msg.getAccion().equals("OK")) {
-						JOptionPane.showMessageDialog(null, "Documento eliminado!", "Completado", JOptionPane.YES_OPTION);
+						JOptionPane.showMessageDialog(null, "Documento eliminado!", "Completado", JOptionPane.INFORMATION_MESSAGE);
 						limpiarListaDocumentos();
 						listarDocumentos();
+						btnEliminarArchivo.setEnabled(false);
 					}else {
 						JOptionPane.showMessageDialog(null, "No eres el creador del archivo seleccionado. Operación no concretada", "Advertencia", JOptionPane.NO_OPTION);
 					}
 				}else {
-					JOptionPane.showMessageDialog(null, "Recordar que debe seleccionar el archivo para eliminarlo.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(null, "Debe seleccionar el archivo para eliminarlo.", "Advertencia", JOptionPane.WARNING_MESSAGE);
 				}
 				
 			}
@@ -643,7 +661,7 @@ public class PanelPrincipal extends JPanel{
 		
 		btnEdicion.setEnabled(false);
 		btnEliminarArchivo.setEnabled(false);
-		
+		btnEliminarAmigo.setEnabled(false);
 	}
 	
 	private void inicializarMenuEdicion () {
@@ -718,6 +736,22 @@ public class PanelPrincipal extends JPanel{
 		enviarModificaciones.setBounds(300, 154+(23+8)*3, 200, 23);
 		this.add(enviarModificaciones);	
 		
+		JButton atras = new JButton("Atras");
+		atras.setBounds(300, 154+(23+8)*4, 200, 23);
+		this.add(atras);
+		atras.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				enviarModificaciones.setVisible(false);
+				preguntaSeg.setVisible(false);
+				passMod.setVisible(false);
+				usuarioMod.setVisible(false);
+				lblPreguntaSeg.setVisible(false);
+				lblPassword.setVisible(false);
+				lblUsuario.setVisible(false);
+				atras.setVisible(false);
+				inicializarMenuPrincipal();
+			}
+		});	
 		enviarModificaciones.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				
@@ -725,7 +759,7 @@ public class PanelPrincipal extends JPanel{
 				cliente.enviarMsg(new Msg("actualizarDatosPersonales", new PaqueteDatosPersonalesAct(usuarioMod.getText(),passMod.getText(),preguntaSeg.getText(),usr.getEmail())));
 				Msg msg = cliente.recibirMsg();
 				if (msg.getAccion().equals("OK")) {
-					JOptionPane.showMessageDialog(null, "Se han modificado los datos ingresados correctamente!","Modificación de datos", JOptionPane.YES_OPTION);
+					JOptionPane.showMessageDialog(null, "Se han modificado los datos ingresados correctamente!","Modificación de datos", JOptionPane.INFORMATION_MESSAGE);
 					enviarModificaciones.setVisible(false);
 					preguntaSeg.setVisible(false);
 					passMod.setVisible(false);
@@ -733,6 +767,7 @@ public class PanelPrincipal extends JPanel{
 					lblPreguntaSeg.setVisible(false);
 					lblPassword.setVisible(false);
 					lblUsuario.setVisible(false);
+					atras.setVisible(false);
 					inicializarMenuPrincipal();
 				}else {
 					JOptionPane.showMessageDialog(null, "La respuesta de seguridad es incorrecta!.","Modificación de datos", JOptionPane.ERROR_MESSAGE);
