@@ -7,3 +7,6 @@ Ejecución del programa:
 3. Ejecutar Clase "Servidor" para que empiece a recibir usuarios el sistema.
 4. Ejecutar la clase "ControlPantallas" Para ejecutar el programa principal.
 
+Metodo de contribución al proyecto: Issues.
+
+
