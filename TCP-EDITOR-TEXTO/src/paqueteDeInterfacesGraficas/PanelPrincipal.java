@@ -1,12 +1,17 @@
 package paqueteDeInterfacesGraficas;
 
+import java.awt.Choice;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GraphicsEnvironment;
 import java.awt.ScrollPane;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.SimpleDateFormat;
@@ -73,8 +78,13 @@ public class PanelPrincipal extends JPanel{
 	private JButton btnRefrescarDoc;
 	private JButton btnEliminarAmigo;
 	private ImageIcon fondo;
+	private Choice listaTam;
+	private Choice listaFuente;
+	private Choice listaEstilo;
+	private String[] fuentes;
 		
 	public PanelPrincipal(int ancho, int alto, Cliente cliente, Usuario usr,String rutaImagen) {
+		fuentes = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
 		fondo = new ImageIcon(getClass().getResource(rutaImagen));
 		modoEdicion = false;
 		usuariosIntegrantesDoc =null;
@@ -180,11 +190,17 @@ public class PanelPrincipal extends JPanel{
 					modoEdicion = false;
 					habilitarEdicion();
 					btnCerrarDoc.setEnabled(true);
+					listaEstilo.setEnabled(true);
+					listaFuente.setEnabled(true);
+					listaTam.setEnabled(true);
 					if (!consultarUsrCreadorArch().equals(usr.getEmail())) {
 						//No soy el creador del archivo seleccionado. Controlo la eliminacion del mismo
 						controlEliminacionArch = true;
 					}	
 				}else {
+					listaEstilo.setEnabled(false);
+					listaFuente.setEnabled(false);
+					listaTam.setEnabled(false);
 					btnCerrarDoc.setEnabled(false);
 				}
 			}else {
@@ -340,7 +356,62 @@ public class PanelPrincipal extends JPanel{
      *  datos personales
      *  Definicion de componentes e inicialización
      *  */
-	private void initComponent() {		
+	private void initComponent() {	
+		
+		listaTam = new Choice();
+		listaTam.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				Font f = textArea.getFont();
+				textArea.setFont(new Font (f.getFontName(),f.getStyle(),Integer.parseInt(String.valueOf(listaTam.getSelectedItem()))));
+			
+			}
+		});
+		listaTam.setBounds(288, 120, 60, 20);
+		this.add(listaTam);
+		
+		listaFuente = new Choice();
+		listaFuente.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				Font f = textArea.getFont();
+				Font nuevoF = new Font (listaFuente.getSelectedItem(),f.getStyle(),f.getSize());
+//				System.out.println(listaFuente.getSelectedItem() +"-"+f.getFontName()+ " - nuevo Font: "+nuevoF.getName());
+				textArea.setFont(nuevoF);
+//				textArea.setFont(new Font (listaFuente.getSelectedItem(),f.getStyle(),f.getSize()));
+				
+			}
+		});
+		listaFuente.setBounds(157, 120, 60, 20);
+		this.add(listaFuente);
+		
+		listaEstilo = new Choice();
+		listaEstilo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				
+				int estilo  = Font.PLAIN;
+				if (listaEstilo.getSelectedItem().equals("Normal")) {
+					estilo = Font.PLAIN;
+					System.out.println("normal: "+estilo);
+				}
+				if (listaEstilo.getSelectedItem().equals("Negrita")) {
+					estilo = Font.BOLD;
+					System.out.println("negrita: "+estilo);
+				}
+				if (listaEstilo.getSelectedItem().equals("Cursiva")) {
+					
+					estilo = Font.ITALIC;
+					
+					System.out.println("cursiva: "+estilo);
+				}
+				
+				Font f = textArea.getFont();
+				textArea.setFont(new Font (f.getFontName(),estilo,f.getSize()));
+			
+			}
+		});
+		listaEstilo.setBounds(381, 120, 60, 20);
+		this.add(listaEstilo);
+		
+		cargarListasEdicion();
 		
 		listAmigosConectados = new JList();
 		listAmigosConectados.setBounds(10, 154, 160, 335);
@@ -638,11 +709,29 @@ public class PanelPrincipal extends JPanel{
 		inicializarMenuPrincipal();
 	}
 
+	private void cargarListasEdicion() {
+		
+		for (int i = 10; i <= 30; i++) {
+			listaTam.addItem(String.valueOf(i));
+		}
+		
+		for (String nombreFuente : fuentes) {
+			listaFuente.addItem(nombreFuente);
+		}
+		
+		listaEstilo.addItem("Normal");
+		listaEstilo.addItem("Negrita");
+		listaEstilo.addItem("Cursiva");
+	}
+
 	/**
 	 * FIN
 	 * */
 //////METODOS PARA MOSTRAR DIFERENTES TIPO DE MENÚ///////	
 	private void inicializarMenuPrincipal () {
+		listaEstilo.setVisible(false);
+		listaFuente.setVisible(false);
+		listaTam.setVisible(false);
 		btnCompartir.setVisible(false);
 		textArea.setVisible(false);
 		btnCerrarDoc.setVisible(false);
@@ -666,6 +755,9 @@ public class PanelPrincipal extends JPanel{
 	
 	private void inicializarMenuEdicion () {
 		updateUI();
+		listaEstilo.setVisible(true);
+		listaFuente.setVisible(true);
+		listaTam.setVisible(true);
 		btnCompartir.setVisible(true);
 		textArea.setVisible(true);
 		btnCerrarDoc.setVisible(true);
@@ -691,6 +783,9 @@ public class PanelPrincipal extends JPanel{
 	
 	private void inicializarMenuDatosPersonales() {
 		updateUI();
+		listaEstilo.setVisible(false);
+		listaFuente.setVisible(false);
+		listaTam.setVisible(false);
 		btnAgregarAmigo.setVisible(false);
 		btnCrearDoc.setVisible(false);
 		btnEdicion.setVisible(false);

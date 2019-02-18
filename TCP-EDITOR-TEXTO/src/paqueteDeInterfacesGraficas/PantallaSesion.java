@@ -224,18 +224,22 @@ public class PantallaSesion extends JFrame {
 		btnEnviarRec = new JButton("Enviar");
 		btnEnviarRec.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
-				PaqueteRecuperarContrasena pck = new PaqueteRecuperarContrasena(email.getText(),passwordRec.getText(),txtRespSegRec.getText());
-				cli.enviarMsg(new Msg("recuperarContraseña",pck));
-			    Msg msgRecibido = cli.recibirMsg();  
-				if (msgRecibido.getAccion().equals("OK")) {
-					estado.setText("La contraseña ha sido modificada correctamente!");
-					estado.setBackground(Color.GREEN);
+				if (!email.getText().equals("") && passwordRec.getText().equals("")  && !txtRespSegRec.getText().equals("") &&
+						!email.getText().isEmpty() && passwordRec.getText().isEmpty()  && !txtRespSegRec.getText().isEmpty()) {
+					PaqueteRecuperarContrasena pck = new PaqueteRecuperarContrasena(email.getText(),passwordRec.getText(),txtRespSegRec.getText());
+					cli.enviarMsg(new Msg("recuperarContraseña",pck));
+				    Msg msgRecibido = cli.recibirMsg();  
+					if (msgRecibido.getAccion().equals("OK")) {
+						estado.setText("La contraseña ha sido modificada correctamente!");
+						estado.setBackground(Color.GREEN);
+					}else {
+						estado.setText("El email o la respuesta no fueron correctas!");
+						estado.setBackground(Color.RED);
+				    }
 				}else {
-					estado.setText("El email o la respuesta no fueron correctas!");
+					estado.setText("Debe completar los campos para enviar la información");
 					estado.setBackground(Color.RED);
-			    }
-
+				}
 
 			}
 		});
@@ -328,23 +332,28 @@ public class PantallaSesion extends JFrame {
 		txtRespSegReg.setColumns(10);
 		txtRespSegReg.setBounds(335-30, 291+30, 237, 20);
 		pantallaSesion.add(txtRespSegReg);
-		JButton btnRegistrarseReg = new JButton("Registrarse");
+		JButton btnRegistrarseReg = new JButton("Registrar");
 		btnRegistrarseReg.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
-				PaqueteRegistracion reg = new PaqueteRegistracion(nyaReg.getText(),usuarioReg.getText(),txtRespSegReg.getText(),passwordReg.getText(),textFieldEmailReg.getText());
-			    Msg msgEnviarASv = new Msg ("registrar",reg);
-			    cli.enviarMsg(msgEnviarASv); 
-			    Msg msgRecibido = cli.recibirMsg();
-			    
-				if (msgRecibido.getAccion().equals("OK")) {
-					estado.setText("Te haz registrado correctamente!");
-					estado.setBackground(Color.GREEN);
+				 
+				if ( !usuarioReg.getText().equals(" ") && !nyaReg.getText().equals(" ") && !txtRespSegReg.getText().equals(" ") && !passwordReg.getText().equals(" ") && !textFieldEmailReg.getText().equals(" ")
+					&&	!usuarioReg.getText().isEmpty() && !nyaReg.getText().isEmpty() && !txtRespSegReg.getText().isEmpty() && !passwordReg.getText().isEmpty() && !textFieldEmailReg.getText().isEmpty()) {
+					PaqueteRegistracion reg = new PaqueteRegistracion(nyaReg.getText(),usuarioReg.getText(),txtRespSegReg.getText(),passwordReg.getText(),textFieldEmailReg.getText());
+				    Msg msgEnviarASv = new Msg ("registrar",reg);
+				    cli.enviarMsg(msgEnviarASv); 
+				    Msg msgRecibido = cli.recibirMsg();
+				    
+					if (msgRecibido.getAccion().equals("OK")) {
+						estado.setText("Te haz registrado correctamente!");
+						estado.setBackground(Color.GREEN);
+					}else {
+						estado.setText("El email de usuario ya existe!");
+						estado.setBackground(Color.RED);
+				    }
 				}else {
-					estado.setText("El email de usuario ya existe!");
+					estado.setText("Debe completar todos los campos para poder registrarse");
 					estado.setBackground(Color.RED);
-			    }
-
+				}
 			}
 		});
 		btnRegistrarseReg.setBounds(292-30, 346+30, 105, 23);

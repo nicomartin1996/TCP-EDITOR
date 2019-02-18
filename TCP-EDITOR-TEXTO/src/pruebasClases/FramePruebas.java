@@ -1,13 +1,17 @@
 package pruebasClases;
 
+import java.awt.Choice;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.awt.ScrollPane;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -30,6 +34,10 @@ public class FramePruebas extends JFrame {
 	private JTextField txtFIntegrantes;
 	private JTextField txtFFechMod;
 	private JTextField txtFEstadoDoc;
+	private String[] fuentes;
+	private Choice listaTam;
+	private Choice listaFuente;
+	private Choice listaEstilo;
 
 	/**
 	 * Launch the application.
@@ -186,6 +194,74 @@ public class FramePruebas extends JFrame {
 		contentPane.add(txtFEstadoDoc);
 		txtFEstadoDoc.setColumns(10);
 		
+		
+		
+		
+		listaTam = new Choice();
+		listaTam.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				Font f = lblListaDeAmigos.getFont();
+				lblListaDeAmigos.setFont(new Font (f.getFontName(),f.getStyle(),Integer.parseInt(String.valueOf(listaTam.getSelectedItem()))));
+			
+			}
+		});
+		listaTam.setBounds(205, 120, 60, 20);
+		contentPane.add(listaTam);
+		
+		listaFuente = new Choice();
+		listaFuente.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				Font f = lblListaDeAmigos.getFont();
+				lblListaDeAmigos.setFont(new Font (String.valueOf(listaFuente.getSelectedItem()),f.getStyle(),f.getSize()));
+			}
+		});
+		listaFuente.setBounds(288, 120, 60, 20);
+		contentPane.add(listaFuente);
+		
+		listaEstilo = new Choice();
+		listaEstilo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				
+				int estilo  = Font.PLAIN;
+				if (listaEstilo.getSelectedItem().equals("Normal")) {
+					estilo = Font.PLAIN;
+					System.out.println("normal: "+estilo);
+				}
+				if (listaEstilo.getSelectedItem().equals("Negrita")) {
+					estilo = Font.BOLD;
+					System.out.println("negrita: "+estilo);
+				}
+				if (listaEstilo.getSelectedItem().equals("Cursiva")) {
+					
+					estilo = Font.ITALIC;
+					
+					System.out.println("cursiva: "+estilo);
+				}
+				
+				Font f = lblListaDeAmigos.getFont();
+				lblListaDeAmigos.setFont(new Font (f.getFontName(),estilo,f.getSize()));
+			
+			}
+		});
+		listaEstilo.setBounds(381, 120, 60, 20);
+		contentPane.add(listaEstilo);
+		
+		cargarListasEdicion();
+	}
+	
+	public void cargarListasEdicion() {
 
+		fuentes = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+		for (int i = 10; i <= 30; i++) {
+			listaTam.addItem(String.valueOf(i));
+		}
+		
+		for (String nombreFuente : fuentes) {
+			listaFuente.addItem(nombreFuente);
+		}
+		
+		listaEstilo.addItem("Normal");
+		listaEstilo.addItem("Negrita");
+		listaEstilo.addItem("Cursiva");
 	}
 }
