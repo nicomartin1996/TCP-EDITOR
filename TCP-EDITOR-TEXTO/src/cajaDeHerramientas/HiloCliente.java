@@ -25,21 +25,18 @@ import paqueteDeDatos.PaqueteRegistracion;
 public class HiloCliente extends Thread{
 
 	private Socket cliente;
-	private int idSesion;
 	private boolean estaConectado;
 	private static ArrayList<Usuario> usuariosConectados = new ArrayList<>();
 	private static ArrayList<Documento> documentosUsuarios = new ArrayList<>();
-	private static ArrayList<String> usuariosEditando = new ArrayList<>();
+
 
 	// En el constructor recibe y guarda los parámetros que sean necesarios.
 	// En este caso una lista con toda la conversación y el socket que debe
 	// atender.
-	public HiloCliente(int idSesion, Socket cliente,ArrayList<Usuario> usuariosConectados,ArrayList<Documento> docUsuarios,ArrayList<String> usuariosEdita) {
+	public HiloCliente(Socket cliente,ArrayList<Usuario> usuariosConectados,ArrayList<Documento> docUsuarios) {
 		this.cliente = cliente;
-		this.idSesion = idSesion;
 		HiloCliente.usuariosConectados = usuariosConectados;
 		documentosUsuarios = docUsuarios;
-		usuariosEditando = usuariosEdita;
 		this.estaConectado = true;
 	}
 

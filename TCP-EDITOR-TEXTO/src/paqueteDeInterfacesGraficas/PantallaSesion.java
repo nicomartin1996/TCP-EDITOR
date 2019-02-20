@@ -141,7 +141,7 @@ public class PantallaSesion extends JFrame {
 				password.setVisible(false);
 				lblRe.setVisible(false);
 				
-				PantallaRegistracion();
+				pantallaRegistracion();
 			}
 		});
 		
@@ -286,7 +286,7 @@ public class PantallaSesion extends JFrame {
 		password.setVisible(true);
 	}
 
-	public void PantallaRegistracion() {
+	public void pantallaRegistracion() {
 		pantallaSesion.updateUI();
 		nyaReg = new JTextField();
 		nyaReg.setBounds(335-30, 196+30, 237, 20);

@@ -14,7 +14,6 @@ public class Servidor {
 	private static ServerSocket serverSocket;
 	private static ArrayList<Usuario> usuariosConectados = new ArrayList<>();
 	private static ArrayList<Documento> documentosDeUsuarios = new ArrayList<>();
-	private static ArrayList<String> usuariosEditando = new ArrayList<>();
 	/**
 	 * @param args the command line arguments
 	 */
@@ -24,7 +23,6 @@ public class Servidor {
 
 	public static void main(String[] args) {
 		Servidor sv = new Servidor(5000);
-		int idSesion = 0;
 		try {
 			serverSocket = new ServerSocket(sv.obtenerPuerto());
 			// Socket de cliente
@@ -34,16 +32,14 @@ public class Servidor {
 				System.out.println("Servidor esperando clientes!");
 				clientSocket = serverSocket.accept();
 				System.out.println("conexion aceptada!");
-				HiloCliente hiloCliente = new HiloCliente(idSesion, clientSocket,usuariosConectados,documentosDeUsuarios,usuariosEditando);
+				HiloCliente hiloCliente = new HiloCliente(clientSocket,usuariosConectados,documentosDeUsuarios);
 				hiloCliente.start();
-				idSesion++;
 
 			}
 		} catch (IOException ex) {
 			System.out.println(ex);
 		}
 	}
-
 	private static void levantarArchivos() {
 		ConexionBDLite conexion = new ConexionBDLite("NicoBD.db", "engine", "configuracion1");
 		Connection con = conexion.getConexion();

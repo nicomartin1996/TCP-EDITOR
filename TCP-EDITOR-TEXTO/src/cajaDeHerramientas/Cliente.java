@@ -17,6 +17,7 @@ public class Cliente {
 	private InputStream inputStream;
 	private Usuario usu;
 	private boolean estaConectado;
+	
 	public Socket obtenerSocketCliente() {
 		return client;
 	}
@@ -38,7 +39,8 @@ public class Cliente {
 			System.out.println(mensajeError);
 		}		
 	}
-	public Cliente(String host, int puerto) {
+	
+public Cliente(String host, int puerto) {
 
 		try {
 			this.host = host;

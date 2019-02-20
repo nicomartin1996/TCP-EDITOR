@@ -4,18 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import cajaDeHerramientas.Usuario;
 import pruebasClases.FramePruebas;
 
 public class PantallaEditor extends JFrame {
 	
-	private int idEditorDisponible ;
-	ArrayList <Usuario> usuarioConectado ;
 	private static final long serialVersionUID = 1L;
 	private int ancho;
 	private int alto;
