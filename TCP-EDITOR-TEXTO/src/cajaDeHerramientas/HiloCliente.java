@@ -246,11 +246,15 @@ public class HiloCliente extends Thread{
 			try {
 				String usr = packComp.getUsrCompartido();
 				int cod = packComp.getCodArch();
-				String sql = "INSERT INTO usuarioXArchivo (codArchivo,usrCompartido,fecUltMod) VALUES ( '"+packComp.getCodArch()+"' ,'"+packComp.getUsrCompartido()+"',null)";
-				if (((boolean) conexion.Consulta(sql, con)) == true) {
-//					System.out.println("se inserto correctamente");
+				if (hayLugarLibre(cod,conexion,con)) {					
+					
+					String sql = "INSERT INTO usuarioXArchivo (codArchivo,usrCompartido,fecUltMod) VALUES ( '"+packComp.getCodArch()+"' ,'"+packComp.getUsrCompartido()+"',null)";
+					if (((boolean) conexion.Consulta(sql, con)) == true) {
+	//					System.out.println("se inserto correctamente");
+					}
+					result = new Msg ("OK",null);
+					
 				}
-				result = new Msg ("OK",null);
 			} catch (Exception e) {
 				System.out.println("No pudo insertar el usuarioxarc");
 			}
@@ -591,6 +595,23 @@ public class HiloCliente extends Thread{
 		return result;
 	}
 	
+	private boolean hayLugarLibre(int cod,ConexionBDLite conexion,Connection con) {
+		int cantidad = 0;
+		String sql = "SELECT count(*) as cantidad FROM usuarioXArchivo WHERE codArchivo = '"+cod+"';";
+//		System.out.println(sql);
+		try {
+			ResultSet res = null;
+			res = (ResultSet) conexion.Consulta(sql, con);
+			if (res.next()) {
+				cantidad = res.getInt(1);
+			}
+			res.close();
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		return cantidad < 3 ? true : false;
+	}
+
 	private boolean pasoSeguridad(String email, String respuesta,ConexionBDLite conexion,Connection con) {
 		int cantidad = 0;
 		String sql = "SELECT count(*) as cantidad FROM usuarios WHERE email = '"+email+"' AND respuestaSeguridad = '"+respuesta+"';";

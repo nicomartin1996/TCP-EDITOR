@@ -196,6 +196,7 @@ public class PanelPrincipal extends JPanel{
 					if (!consultarUsrCreadorArch().equals(usr.getEmail())) {
 						//No soy el creador del archivo seleccionado. Controlo la eliminacion del mismo
 						controlEliminacionArch = true;
+						System.out.println("No es mi archivo");
 					}	
 				}else {
 					listaEstilo.setEnabled(false);
@@ -640,6 +641,8 @@ public class PanelPrincipal extends JPanel{
 					if (msg.getAccion().equals("OK")) {
 						JOptionPane.showMessageDialog(null, "Has compartido el Documento "+infoDoc[1]+" con "+emailAmigo+"!", "Operación Satisfactoria", JOptionPane.INFORMATION_MESSAGE);
 						actualizarDatos();
+					}else {
+						JOptionPane.showMessageDialog(null, "Se superó la cantidad de usuarios participantes!", "Advertencia", JOptionPane.WARNING_MESSAGE);
 					}
 					
 				}else {
