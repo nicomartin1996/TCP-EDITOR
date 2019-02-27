@@ -61,7 +61,7 @@ public Cliente(String host, int puerto) {
 		return mensajeError;
 	}
 
-	public void enviarMsg(Msg consultaAlServidor) {
+	public synchronized void enviarMsg(Msg consultaAlServidor) {
 		try {
 			this.outPutStream = new ObjectOutputStream(client.getOutputStream());
 			outPutStream.writeObject(consultaAlServidor);
@@ -74,7 +74,7 @@ public Cliente(String host, int puerto) {
 
 	}
 
-	public Msg recibirMsg() {
+	public synchronized Msg recibirMsg() {
 		Msg obj =  null;
 		try {
 			reciboMsg = new ObjectInputStream(client.getInputStream());
